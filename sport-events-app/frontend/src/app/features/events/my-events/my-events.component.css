@@ -82,12 +82,22 @@
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
 }
 
-.event-image {
+.event-image-container {
   height: 200px;
+  position: relative;
+  overflow: hidden;
+}
+
+.event-image {
+  height: 100%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   background-size: cover;
   background-position: center;
-  position: relative;
+}
+
+.event-map {
+  height: 100%;
+  width: 100%;
 }
 
 .event-status-badge {
@@ -99,6 +109,7 @@
   font-size: 13px;
   font-weight: 600;
   color: white;
+  z-index: 10;
 }
 
 .event-status-badge.upcoming {
@@ -126,6 +137,7 @@
   font-size: 13px;
   font-weight: 600;
   color: white;
+  z-index: 10;
 }
 
 .participation-badge.confirmed {

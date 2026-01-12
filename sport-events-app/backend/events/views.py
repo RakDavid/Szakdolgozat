@@ -57,7 +57,11 @@ class SportEventListCreateView(generics.ListCreateAPIView):
         return SportEventListSerializer
     
     def get_queryset(self):
-        queryset = SportEvent.objects.filter(is_public=True).select_related(
+        # Csak a jövőbeli vagy mai események (régi események kiszűrése)
+        queryset = SportEvent.objects.filter(
+            is_public=True,
+            start_date_time__gte=timezone.now()
+        ).select_related(
             'sport_type', 'creator'
         ).prefetch_related('images', 'participants')
         
@@ -143,7 +147,8 @@ class MyEventsView(generics.ListAPIView):
     
     def get_queryset(self):
         return SportEvent.objects.filter(
-            creator=self.request.user
+            creator=self.request.user,
+            start_date_time__gte=timezone.now()
         ).select_related('sport_type', 'creator').prefetch_related('images', 'participants')
 
 
@@ -163,7 +168,8 @@ class MyParticipationsView(generics.ListAPIView):
         ).values_list('event_id', flat=True)
         
         return SportEvent.objects.filter(
-            id__in=participated_event_ids
+            id__in=participated_event_ids,
+            start_date_time__gte=timezone.now()
         ).select_related('sport_type', 'creator').prefetch_related('images', 'participants')
 
 

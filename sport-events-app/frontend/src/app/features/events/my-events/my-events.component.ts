@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { EventService } from '../../../core/services/event.service';
 import { SportEvent } from '../../../core/models/models';
+import { MapComponent } from '../../../shared/map/map.component';
 
 @Component({
   selector: 'app-my-events',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, MapComponent],
   templateUrl: './my-events.component.html',
   styleUrls: ['./my-events.component.css']
 })

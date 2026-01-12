@@ -222,7 +222,12 @@ export class EventCreateComponent implements OnInit {
     this.eventService.createEvent(formData).subscribe({
       next: (event) => {
         console.log('%cEvent created successfully:', 'color: green; font-weight: bold;', event);
-        this.router.navigate(['/events', event.id]);
+        
+        // Sikeres üzenet megjelenítése
+        alert('✅ Esemény sikeresen létrehozva!');
+        
+        // Átirányítás a saját események oldalra
+        this.router.navigate(['/my-events']);
       },
       error: (error) => {
         console.error('%cBackend error response:', 'color: red; font-weight: bold;', error);

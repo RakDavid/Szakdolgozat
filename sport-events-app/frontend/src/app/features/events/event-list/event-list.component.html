@@ -164,10 +164,27 @@
         class="event-card"
         [routerLink]="['/events', event.id]"
       >
-        <div
-          class="event-image"
-          [style.background-image]="event.primary_image ? 'url(' + event.primary_image + ')' : 'none'"
-        >
+        <!-- Kép vagy térkép -->
+        <div class="event-image-container">
+          <div
+            *ngIf="event.primary_image"
+            class="event-image"
+            [style.background-image]="'url(' + event.primary_image + ')'"
+          >
+          </div>
+          <div
+            *ngIf="!event.primary_image"
+            class="event-map"
+          >
+            <app-map 
+              [latitude]="event.latitude" 
+              [longitude]="event.longitude"
+              [zoom]="14"
+              [height]="'200px'"
+              [markers]="[{lat: event.latitude, lng: event.longitude, popup: event.location_name}]"
+            ></app-map>
+          </div>
+          
           <div class="event-badge" [class.free]="event.is_free">
             {{ event.is_free ? 'Ingyenes' : (event.price + ' Ft') }}
           </div>
