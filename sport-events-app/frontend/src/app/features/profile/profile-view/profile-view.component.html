@@ -1,0 +1,156 @@
+<div class="profile-container" *ngIf="!loading && user">
+  <!-- Profile Header -->
+  <div class="profile-header">
+    <div class="profile-banner"></div>
+    <div class="profile-info">
+      <div class="profile-avatar-wrapper">
+        <div class="profile-avatar" *ngIf="!user.profile_picture">
+          {{ getUserInitials() }}
+        </div>
+        <img 
+          *ngIf="user.profile_picture" 
+          [src]="user.profile_picture" 
+          alt="Profile Picture"
+          class="profile-avatar-img"
+        />
+      </div>
+      <div class="profile-details">
+        <h1 class="profile-name">{{ user.full_name }}</h1>
+        <p class="profile-username">{{ '@' + user.username }}</p>
+        <p class="profile-member-since">📅 Tag {{ getMemberSince() }} óta</p>
+      </div>
+      <div class="profile-actions">
+        <button class="btn btn-primary" (click)="editProfile()">
+          ✏️ Profil szerkesztése
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="alert alert-error">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Profile Content -->
+  <div class="profile-content">
+    <!-- Left Column -->
+    <div class="profile-main">
+      <!-- About Section -->
+      <div class="section-card">
+        <h2 class="section-title">Rólam</h2>
+        <div *ngIf="user.bio" class="bio-text">
+          {{ user.bio }}
+        </div>
+        <div *ngIf="!user.bio" class="empty-message">
+          Még nincs bemutatkozás. Szerkeszd a profilod és adj hozzá egy bemutatkozást!
+        </div>
+      </div>
+
+      <!-- Sport Preferences -->
+      <div class="section-card">
+        <h2 class="section-title">Sportág preferenciák</h2>
+        <div *ngIf="sportPreferences.length > 0" class="preferences-list">
+          <div 
+            *ngFor="let pref of sportPreferences" 
+            class="preference-item"
+          >
+            <div class="preference-header">
+              <span class="preference-sport">{{ pref.sport_type_detail?.name }}</span>
+              <span class="preference-level" [class]="pref.skill_level">
+                {{ getSkillLevelLabel(pref.skill_level) }}
+              </span>
+            </div>
+            <div class="preference-interest">
+              <span class="interest-label">Érdeklődési szint:</span>
+              <div class="interest-bar">
+                <div 
+                  class="interest-fill" 
+                  [style.width.%]="pref.interest_level * 10"
+                ></div>
+              </div>
+              <span class="interest-value">{{ pref.interest_level }}/10</span>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="sportPreferences.length === 0" class="empty-message">
+          Még nincs megadva sportág preferencia. Adj hozzá preferenciákat a jobb ajánlásokért!
+        </div>
+      </div>
+
+      <!-- Statistics -->
+      <div class="section-card">
+        <h2 class="section-title">Statisztikák</h2>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-icon">📝</div>
+            <div class="stat-value">{{ user.created_events_count || 0 }}</div>
+            <div class="stat-label">Létrehozott esemény</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">🏃</div>
+            <div class="stat-value">{{ user.participated_events_count || 0 }}</div>
+            <div class="stat-label">Részvétel</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="profile-sidebar">
+      <!-- Contact Info -->
+      <div class="sidebar-card">
+        <h3 class="sidebar-title">Elérhetőség</h3>
+        <div class="contact-list">
+          <div class="contact-item">
+            <span class="contact-icon">📧</span>
+            <span class="contact-value">{{ user.email }}</span>
+          </div>
+          <div class="contact-item" *ngIf="user.phone_number">
+            <span class="contact-icon">📱</span>
+            <span class="contact-value">{{ user.phone_number }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Location Info -->
+      <div class="sidebar-card" *ngIf="user.default_location_name">
+        <h3 class="sidebar-title">Alapértelmezett helyszín</h3>
+        <div class="location-info">
+          <div class="location-icon">📍</div>
+          <div class="location-details">
+            <div class="location-name">{{ user.default_location_name }}</div>
+            <div class="location-search">
+              Keresési sugár: {{ user.default_search_radius }} km
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="sidebar-card">
+        <h3 class="sidebar-title">Gyors linkek</h3>
+        <div class="quick-links">
+          <a routerLink="/my-events" class="quick-link">
+            <span class="link-icon">📅</span>
+            <span class="link-text">Saját események</span>
+          </a>
+          <a routerLink="/events" class="quick-link">
+            <span class="link-icon">🔍</span>
+            <span class="link-text">Események böngészése</span>
+          </a>
+          <a routerLink="/create-event" class="quick-link">
+            <span class="link-icon">➕</span>
+            <span class="link-text">Új esemény</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading -->
+<div *ngIf="loading" class="loading-container">
+  <div class="spinner"></div>
+  <p>Profil betöltése...</p>
+</div>

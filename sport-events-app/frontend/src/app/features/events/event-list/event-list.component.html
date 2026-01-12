@@ -1,0 +1,260 @@
+<div class="event-list-container">
+  <div class="page-header">
+    <h1>Sportesemények</h1>
+    <p>Találd meg a tökéletes eseményt a közeledben</p>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-container">
+    <div class="filters-header">
+      <h3>Szűrők</h3>
+      <button class="btn-text" (click)="resetFilters()">Szűrők törlése</button>
+    </div>
+
+    <div class="filters-grid">
+      <!-- Search -->
+      <div class="filter-group full-width">
+        <label>Keresés</label>
+        <input
+          type="text"
+          [(ngModel)]="filters.search"
+          (ngModelChange)="applyFilters()"
+          placeholder="Esemény neve, helyszín..."
+          class="form-control"
+        />
+      </div>
+
+      <!-- Sport Type -->
+      <div class="filter-group">
+        <label>Sportág</label>
+        <select
+          [(ngModel)]="filters.sport_type"
+          (ngModelChange)="applyFilters()"
+          class="form-control"
+        >
+          <option [ngValue]="undefined">Összes sportág</option>
+          <option *ngFor="let type of sportTypes" [value]="type.id">
+            {{ type.name }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Status -->
+      <div class="filter-group">
+        <label>Státusz</label>
+        <select
+          [(ngModel)]="filters.status"
+          (ngModelChange)="applyFilters()"
+          class="form-control"
+        >
+          <option value="">Összes</option>
+          <option value="upcoming">Közelgő</option>
+          <option value="ongoing">Folyamatban</option>
+          <option value="completed">Befejezett</option>
+        </select>
+      </div>
+
+      <!-- Difficulty -->
+      <div class="filter-group">
+        <label>Nehézség</label>
+        <select
+          [(ngModel)]="filters.difficulty"
+          (ngModelChange)="applyFilters()"
+          class="form-control"
+        >
+          <option [ngValue]="undefined">Összes szint</option>
+          <option value="easy">Kezdő</option>
+          <option value="medium">Közepes</option>
+          <option value="hard">Haladó</option>
+        </select>
+      </div>
+
+      <!-- Is Free -->
+      <div class="filter-group">
+        <label>Típus</label>
+        <select
+          [(ngModel)]="filters.is_free"
+          (ngModelChange)="applyFilters()"
+          class="form-control"
+        >
+          <option [ngValue]="undefined">Összes</option>
+          <option [value]="true">Ingyenes</option>
+          <option [value]="false">Fizetős</option>
+        </select>
+      </div>
+
+      <!-- Ordering -->
+      <div class="filter-group">
+        <label>Rendezés</label>
+        <select
+          [(ngModel)]="filters.ordering"
+          (ngModelChange)="applyFilters()"
+          class="form-control"
+        >
+          <option value="start_date_time">Időpont (legközelebbi)</option>
+          <option value="-start_date_time">Időpont (legtávolabbi)</option>
+          <option value="created_at">Létrehozás (legújabb)</option>
+          <option value="-created_at">Létrehozás (legrégebbi)</option>
+        </select>
+      </div>
+
+      <!-- Location Search -->
+      <div class="filter-group full-width">
+        <div class="location-filter">
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              [(ngModel)]="useLocation"
+              (change)="toggleLocationSearch()"
+            />
+            <span>Keresés a környékemen</span>
+          </label>
+          <div *ngIf="useLocation" class="radius-control">
+            <label>Sugár: {{ searchRadius }} km</label>
+            <input
+              type="range"
+              [(ngModel)]="searchRadius"
+              (ngModelChange)="applyFilters()"
+              min="1"
+              max="50"
+              class="range-slider"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="results-section">
+    <div class="results-header">
+      <p class="results-count">
+        <strong>{{ totalCount }}</strong> esemény található
+      </p>
+      
+      <!-- View Mode Toggle -->
+      <div class="view-toggle">
+        <button 
+          class="view-btn" 
+          [class.active]="viewMode === 'list'"
+          (click)="switchViewMode('list')"
+        >
+          📋 Lista
+        </button>
+        <button 
+          class="view-btn" 
+          [class.active]="viewMode === 'map'"
+          (click)="switchViewMode('map')"
+        >
+          🗺️ Térkép
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="loading-container">
+      <div class="spinner"></div>
+      <p>Események betöltése...</p>
+    </div>
+
+    <!-- Events Grid -->
+     <div *ngIf="!loading && events.length > 0 && viewMode === 'list'" class="events-grid">
+      <div
+        *ngFor="let event of events"
+        class="event-card"
+        [routerLink]="['/events', event.id]"
+      >
+        <div
+          class="event-image"
+          [style.background-image]="event.primary_image ? 'url(' + event.primary_image + ')' : 'none'"
+        >
+          <div class="event-badge" [class.free]="event.is_free">
+            {{ event.is_free ? 'Ingyenes' : (event.price + ' Ft') }}
+          </div>
+          <div *ngIf="event.distance" class="distance-badge">
+            📍 {{ event.distance }} km
+          </div>
+        </div>
+
+        <div class="event-content">
+          <div class="event-meta">
+            <span class="event-sport-type">
+              {{ event.sport_type_detail?.name }}
+            </span>
+            <span class="event-difficulty" [class]="event.difficulty">
+              {{ getDifficultyLabel(event.difficulty) }}
+            </span>
+          </div>
+
+          <h3 class="event-title">{{ event.title }}</h3>
+
+          <div class="event-details">
+            <div class="event-detail">
+              <span class="detail-icon">📅</span>
+              {{ getEventDate(event.start_date_time) }}
+            </div>
+            <div class="event-detail">
+              <span class="detail-icon">🕒</span>
+              {{ getEventTime(event.start_date_time) }}
+            </div>
+            <div class="event-detail">
+              <span class="detail-icon">📍</span>
+              {{ event.location_name }}
+            </div>
+          </div>
+
+          <div class="event-footer">
+            <div class="event-participants">
+              <span class="participants-icon">👥</span>
+              <span class="participants-text">
+                {{ event.participants_count }} / {{ event.max_participants }}
+              </span>
+            </div>
+            <div class="event-status" [class.full]="event.is_full">
+              {{ event.is_full ? 'Betelt' : event.available_spots + ' hely' }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && events.length > 0 && viewMode === 'map'" class="map-view">
+      <app-map 
+        [latitude]="userLocation?.lat || 47.4979" 
+        [longitude]="userLocation?.lng || 19.0402"
+        [zoom]="12"
+        [height]="'600px'"
+        [markers]="mapMarkers"
+      ></app-map>
+    </div>
+
+    <!-- No Results -->
+    <div *ngIf="!loading && events.length === 0" class="no-results">
+      <div class="no-results-icon">🔍</div>
+      <h3>Nincs találat</h3>
+      <p>Próbálj meg más szűrőket használni</p>
+      <button class="btn btn-primary" (click)="resetFilters()">
+        Szűrők törlése
+      </button>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="!loading && events.length > 0" class="pagination">
+      <button
+        class="btn btn-outline"
+        [disabled]="!hasPrevious"
+        (click)="previousPage()"
+      >
+        ← Előző
+      </button>
+      <span class="page-info">{{ currentPage }}. oldal</span>
+      <button
+        class="btn btn-outline"
+        [disabled]="!hasNext"
+        (click)="nextPage()"
+      >
+        Következő →
+      </button>
+    </div>
+  </div>
+</div>

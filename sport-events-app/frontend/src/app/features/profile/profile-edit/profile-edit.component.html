@@ -1,0 +1,218 @@
+<div class="profile-edit-container">
+  <div class="page-header">
+    <h1>Profil szerkesztése</h1>
+    <p>Frissítsd az adataidat és a beállításaidat</p>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="successMessage" class="alert alert-success">
+    {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-error">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Form -->
+  <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="edit-form" *ngIf="!loading">
+    <!-- Profile Picture Section -->
+    <div class="form-section">
+      <h2 class="section-title">Profilkép</h2>
+      
+      <div class="profile-picture-upload">
+        <div class="current-picture">
+          <div class="picture-preview" *ngIf="imagePreview">
+            <img [src]="imagePreview" alt="Profile Preview" />
+          </div>
+          <div class="picture-placeholder" *ngIf="!imagePreview">
+            👤
+          </div>
+        </div>
+        
+        <div class="upload-controls">
+          <label for="profile_picture" class="btn btn-outline">
+            📷 Kép kiválasztása
+          </label>
+          <input
+            type="file"
+            id="profile_picture"
+            accept="image/*"
+            (change)="onFileSelected($event)"
+            style="display: none"
+          />
+          <small>Maximum 5MB, JPG vagy PNG formátum</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Basic Info Section -->
+    <div class="form-section">
+      <h2 class="section-title">Alapadatok</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="first_name">Keresztnév *</label>
+          <input
+            type="text"
+            id="first_name"
+            formControlName="first_name"
+            class="form-control"
+            [class.is-invalid]="f['first_name'].invalid && f['first_name'].touched"
+          />
+          <div *ngIf="f['first_name'].invalid && f['first_name'].touched" class="invalid-feedback">
+            <span *ngIf="f['first_name'].errors?.['required']">A keresztnév kötelező.</span>
+            <span *ngIf="f['first_name'].errors?.['minlength']">Minimum 2 karakter.</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="last_name">Vezetéknév *</label>
+          <input
+            type="text"
+            id="last_name"
+            formControlName="last_name"
+            class="form-control"
+            [class.is-invalid]="f['last_name'].invalid && f['last_name'].touched"
+          />
+          <div *ngIf="f['last_name'].invalid && f['last_name'].touched" class="invalid-feedback">
+            <span *ngIf="f['last_name'].errors?.['required']">A vezetéknév kötelező.</span>
+            <span *ngIf="f['last_name'].errors?.['minlength']">Minimum 2 karakter.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="bio">Bemutatkozás</label>
+        <textarea
+          id="bio"
+          formControlName="bio"
+          class="form-control"
+          rows="4"
+          placeholder="Írj magadról néhány mondatot..."
+          [class.is-invalid]="f['bio'].invalid && f['bio'].touched"
+        ></textarea>
+        <small>{{ f['bio'].value?.length || 0 }} / 500 karakter</small>
+        <div *ngIf="f['bio'].invalid && f['bio'].touched" class="invalid-feedback">
+          <span *ngIf="f['bio'].errors?.['maxlength']">Maximum 500 karakter.</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="phone_number">Telefonszám</label>
+        <input
+          type="tel"
+          id="phone_number"
+          formControlName="phone_number"
+          class="form-control"
+          placeholder="+36 30 123 4567"
+        />
+      </div>
+    </div>
+
+    <!-- Location Section -->
+    <div class="form-section">
+      <h2 class="section-title">Alapértelmezett helyszín</h2>
+
+      <button type="button" class="btn btn-outline" (click)="getCurrentLocation()">
+        📍 Jelenlegi helyzet használata
+      </button>
+
+      <div class="form-group">
+        <label for="default_location_name">Helyszín neve</label>
+        <input
+          type="text"
+          id="default_location_name"
+          formControlName="default_location_name"
+          class="form-control"
+          placeholder="pl: Budapest"
+        />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="default_latitude">Szélesség</label>
+          <input
+            type="number"
+            id="default_latitude"
+            formControlName="default_latitude"
+            class="form-control"
+            step="0.000001"
+            placeholder="47.4979"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="default_longitude">Hosszúság</label>
+          <input
+            type="number"
+            id="default_longitude"
+            formControlName="default_longitude"
+            class="form-control"
+            step="0.000001"
+            placeholder="19.0402"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="default_search_radius">Keresési sugár (km)</label>
+        <input
+          type="number"
+          id="default_search_radius"
+          formControlName="default_search_radius"
+          class="form-control"
+          min="1"
+          max="100"
+        />
+        <small>Alapértelmezett távolság az események kereséséhez</small>
+      </div>
+    </div>
+
+    <!-- Sport Preferences Section -->
+    <div class="form-section">
+      <div class="section-header">
+        <h2 class="section-title">Sportág preferenciák</h2>
+        <button type="button" class="btn btn-outline btn-small" (click)="addSportPreference()">
+          ➕ Új preferencia
+        </button>
+      </div>
+
+      <div *ngIf="sportPreferences.length > 0" class="preferences-list">
+        <div *ngFor="let pref of sportPreferences" class="preference-item">
+          <div class="preference-info">
+            <span class="preference-sport">{{ pref.sport_type_detail?.name }}</span>
+            <span class="preference-level">{{ getSkillLevelLabel(pref.skill_level) }}</span>
+            <span class="preference-interest">Érdeklődés: {{ pref.interest_level }}/10</span>
+          </div>
+          <button 
+            type="button" 
+            class="btn-delete" 
+            (click)="deleteSportPreference(pref.id)"
+          >
+            🗑️
+          </button>
+        </div>
+      </div>
+
+      <p *ngIf="sportPreferences.length === 0" class="empty-message">
+        Még nincs megadva preferencia. Adj hozzá sportágakat a jobb ajánlásokért!
+      </p>
+    </div>
+
+    <!-- Submit Buttons -->
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary btn-large" [disabled]="saving || profileForm.invalid">
+        <span *ngIf="!saving">💾 Mentés</span>
+        <span *ngIf="saving">Mentés...</span>
+      </button>
+      <button type="button" class="btn btn-outline btn-large" routerLink="/profile" [disabled]="saving">
+        Mégse
+      </button>
+    </div>
+  </form>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Profil betöltése...</p>
+  </div>
+</div>

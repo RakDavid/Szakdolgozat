@@ -1,0 +1,178 @@
+<div class="home-container">
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">
+        Találj sportpartnereket<br/>
+        <span class="gradient-text">a közeledben</span>
+      </h1>
+      <p class="hero-description">
+        Csatlakozz helyi sportrendezvényekhez vagy szervezz sajátot. 
+        Ismerj meg új embereket és sportolj együtt!
+      </p>
+      
+      <div class="hero-buttons" *ngIf="!isAuthenticated">
+        <a routerLink="/register" class="btn btn-primary btn-large">
+          Kezdj bele most
+        </a>
+        <a routerLink="/login" class="btn btn-outline btn-large">
+          Bejelentkezés
+        </a>
+      </div>
+
+      <div class="hero-buttons" *ngIf="isAuthenticated">
+        <button (click)="navigateToEvents()" class="btn btn-primary btn-large">
+          Események böngészése
+        </button>
+        <button (click)="navigateToCreateEvent()" class="btn btn-outline btn-large">
+          Esemény létrehozása
+        </button>
+      </div>
+    </div>
+
+    <div class="hero-image">
+      <div class="hero-illustration">
+        <span class="illustration-emoji">🏃‍♂️⚽🏀🎾</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features-section">
+    <div class="section-header">
+      <h2 class="section-title">Miért válassz minket?</h2>
+      <p class="section-description">
+        Modern funkciók a sportolás egyszerűbbé tételéhez
+      </p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card" *ngFor="let feature of features">
+        <div class="feature-icon">{{ feature.icon }}</div>
+        <h3 class="feature-title">{{ feature.title }}</h3>
+        <p class="feature-description">{{ feature.description }}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Events Section -->
+  <section class="events-section" *ngIf="isAuthenticated && recommendedEvents.length > 0">
+    <div class="section-header">
+      <h2 class="section-title">Neked ajánljuk</h2>
+      <p class="section-description">
+        Személyre szabott javaslatok a preferenciáid alapján
+      </p>
+    </div>
+
+    <div class="events-grid" *ngIf="!loading">
+      <div class="event-card" *ngFor="let event of recommendedEvents" [routerLink]="['/events', event.id]">
+        <div class="event-image" [style.background-image]="event.primary_image ? 'url(' + event.primary_image + ')' : 'none'">
+          <div class="event-badge" [class.free]="event.is_free">
+            {{ event.is_free ? 'Ingyenes' : (event.price + ' Ft') }}
+          </div>
+        </div>
+        <div class="event-content">
+          <div class="event-sport-type">
+            {{ event.sport_type_detail?.name }}
+          </div>
+          <h3 class="event-title">{{ event.title }}</h3>
+          <div class="event-details">
+            <div class="event-detail">
+              <span class="detail-icon">📅</span>
+              {{ getEventDate(event.start_date_time) }}
+            </div>
+            <div class="event-detail">
+              <span class="detail-icon">🕒</span>
+              {{ getEventTime(event.start_date_time) }}
+            </div>
+            <div class="event-detail">
+              <span class="detail-icon">📍</span>
+              {{ event.location_name }}
+            </div>
+          </div>
+          <div class="event-participants">
+            <span class="participants-count">
+              {{ event.participants_count }} / {{ event.max_participants }} résztvevő
+            </span>
+            <span class="participants-status" [class.full]="event.is_full">
+              {{ event.is_full ? 'Betelt' : event.available_spots + ' hely' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="loading-spinner" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Események betöltése...</p>
+    </div>
+
+    <div class="section-footer">
+      <button (click)="navigateToEvents()" class="btn btn-outline">
+        Összes esemény megtekintése
+      </button>
+    </div>
+  </section>
+
+  <!-- Upcoming Events (for non-authenticated users) -->
+  <section class="events-section" *ngIf="!isAuthenticated && upcomingEvents.length > 0">
+    <div class="section-header">
+      <h2 class="section-title">Közelgő események</h2>
+      <p class="section-description">
+        Nézz bele, milyen sportrendezvények várnak rád
+      </p>
+    </div>
+
+    <div class="events-grid" *ngIf="!loading">
+      <div class="event-card" *ngFor="let event of upcomingEvents">
+        <div class="event-image" [style.background-image]="event.primary_image ? 'url(' + event.primary_image + ')' : 'none'">
+          <div class="event-badge" [class.free]="event.is_free">
+            {{ event.is_free ? 'Ingyenes' : (event.price + ' Ft') }}
+          </div>
+        </div>
+        <div class="event-content">
+          <div class="event-sport-type">
+            {{ event.sport_type_detail?.name }}
+          </div>
+          <h3 class="event-title">{{ event.title }}</h3>
+          <div class="event-details">
+            <div class="event-detail">
+              <span class="detail-icon">📅</span>
+              {{ getEventDate(event.start_date_time) }}
+            </div>
+            <div class="event-detail">
+              <span class="detail-icon">🕒</span>
+              {{ getEventTime(event.start_date_time) }}
+            </div>
+            <div class="event-detail">
+              <span class="detail-icon">📍</span>
+              {{ event.location_name }}
+            </div>
+          </div>
+        </div>
+        <div class="event-login-overlay">
+          <p>Jelentkezz be a részletekért</p>
+          <a routerLink="/login" class="btn btn-primary btn-small">Bejelentkezés</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="loading-spinner" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Események betöltése...</p>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section" *ngIf="!isAuthenticated">
+    <div class="cta-content">
+      <h2 class="cta-title">Készen állsz a kezdésre?</h2>
+      <p class="cta-description">
+        Csatlakozz hozzánk most és találd meg a tökéletes sportpartnereket!
+      </p>
+      <a routerLink="/register" class="btn btn-primary btn-large">
+        Regisztrálj ingyen
+      </a>
+    </div>
+  </section>
+</div>

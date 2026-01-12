@@ -1,0 +1,299 @@
+<div class="create-event-container">
+  <div class="page-header">
+    <h1>Új esemény létrehozása</h1>
+    <p>Hozz létre egy sportrendezvényt és hívd meg a közösséget!</p>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="alert alert-error">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Form -->
+  <form [formGroup]="eventForm" (ngSubmit)="onSubmit()" class="event-form">
+    <!-- Basic Info Section -->
+    <div class="form-section">
+      <h2 class="section-title">Alapadatok</h2>
+
+      <div class="form-group">
+        <label for="title">Esemény neve *</label>
+        <input
+          type="text"
+          id="title"
+          formControlName="title"
+          class="form-control"
+          [class.is-invalid]="(f['title'].invalid && f['title'].touched) || errors.title"
+          placeholder="pl: Kispályás foci hétvégére"
+        />
+        <div *ngIf="f['title'].invalid && f['title'].touched" class="invalid-feedback">
+          <span *ngIf="f['title'].errors?.['required']">A cím megadása kötelező.</span>
+          <span *ngIf="f['title'].errors?.['minlength']">Minimum 5 karakter szükséges.</span>
+        </div>
+        <div *ngIf="errors.title" class="invalid-feedback">{{ errors.title[0] }}</div>
+      </div>
+
+      <div class="form-group">
+        <label for="sport_type">Sportág *</label>
+        <select
+          id="sport_type"
+          formControlName="sport_type"
+          class="form-control"
+          [class.is-invalid]="(f['sport_type'].invalid && f['sport_type'].touched) || errors.sport_type"
+        >
+          <option [ngValue]="null">Válassz sportágat</option>
+          <option *ngFor="let type of (sportTypes || [])" [value]="type.id">
+            {{ type.name }}
+          </option>
+        </select>
+        <div *ngIf="f['sport_type'].invalid && f['sport_type'].touched" class="invalid-feedback">
+          <span *ngIf="f['sport_type'].errors?.['required']">A sportág kiválasztása kötelező.</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Leírás *</label>
+        <textarea
+          id="description"
+          formControlName="description"
+          class="form-control"
+          rows="5"
+          [class.is-invalid]="(f['description'].invalid && f['description'].touched) || errors.description"
+          placeholder="Írd le az esemény részleteit, mi várható, kire számítasz..."
+        ></textarea>
+        <div *ngIf="f['description'].invalid && f['description'].touched" class="invalid-feedback">
+          <span *ngIf="f['description'].errors?.['required']">A leírás megadása kötelező.</span>
+          <span *ngIf="f['description'].errors?.['minlength']">Minimum 20 karakter szükséges.</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="difficulty">Nehézségi szint *</label>
+        <select id="difficulty" formControlName="difficulty" class="form-control">
+          <option value="easy">Kezdő - Bárki csatlakozhat</option>
+          <option value="medium">Közepes - Alapvető tapasztalat szükséges</option>
+          <option value="hard">Haladó - Gyakorlott játékosok</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Date & Time Section -->
+    <div class="form-section">
+      <h2 class="section-title">Időpont</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="start_date_time">Kezdés időpontja *</label>
+          <input
+            type="datetime-local"
+            id="start_date_time"
+            formControlName="start_date_time"
+            class="form-control"
+            [class.is-invalid]="(f['start_date_time'].invalid && f['start_date_time'].touched) || errors.start_date_time"
+          />
+          <div *ngIf="f['start_date_time'].invalid && f['start_date_time'].touched" class="invalid-feedback">
+            <span *ngIf="f['start_date_time'].errors?.['required']">A kezdés időpontja kötelező.</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="duration_minutes">Időtartam (perc) *</label>
+          <input
+            type="number"
+            id="duration_minutes"
+            formControlName="duration_minutes"
+            class="form-control"
+            min="15"
+            [class.is-invalid]="f['duration_minutes'].invalid && f['duration_minutes'].touched"
+          />
+          <div *ngIf="f['duration_minutes'].invalid && f['duration_minutes'].touched" class="invalid-feedback">
+            <span *ngIf="f['duration_minutes'].errors?.['min']">Minimum 15 perc szükséges.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Location Section -->
+    <div class="form-section">
+      <h2 class="section-title">Helyszín</h2>
+
+      <div class="location-actions">
+        <button type="button" class="btn btn-outline" (click)="getCurrentLocation()">
+          📍 Jelenlegi helyzet használata
+        </button>
+        <button type="button" class="btn btn-primary" (click)="searchLocationByAddress()" [disabled]="searchingLocation">
+          <span *ngIf="!searchingLocation">🔍 Keresés cím alapján</span>
+          <span *ngIf="searchingLocation">Keresés...</span>
+        </button>
+      </div>
+
+      <div class="form-group">
+        <label for="location_name">Helyszín neve *</label>
+        <input
+          type="text"
+          id="location_name"
+          formControlName="location_name"
+          class="form-control"
+          [class.is-invalid]="f['location_name'].invalid && f['location_name'].touched"
+          placeholder="pl: Városi sportpálya"
+        />
+        <div *ngIf="f['location_name'].invalid && f['location_name'].touched" class="invalid-feedback">
+          <span *ngIf="f['location_name'].errors?.['required']">A helyszín neve kötelező.</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="location_address">Pontos cím *</label>
+        <input
+          type="text"
+          id="location_address"
+          formControlName="location_address"
+          class="form-control"
+          placeholder="pl: Budapest, Példa utca 12. vagy Szeged, Dugonics tér"
+        />
+        <small>Add meg a címet és kattints a "Keresés cím alapján" gombra</small>
+      </div>
+
+      <!-- Geocoding Results -->
+      <div *ngIf="showGeocodingResults && geocodingResults.length > 0" class="geocoding-results">
+        <div class="results-header">
+          <h4>Találatok ({{ geocodingResults.length }})</h4>
+          <button type="button" class="btn-close" (click)="closeGeocodingResults()">✕</button>
+        </div>
+        <div class="results-list">
+          <div 
+            *ngFor="let result of geocodingResults" 
+            class="result-item"
+            (click)="selectGeocodingResult(result)"
+          >
+            <span class="result-icon">📍</span>
+            <span class="result-text">{{ result.display_name }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="latitude">Szélesség (automatikusan kitöltve)</label>
+          <input
+            type="number"
+            id="latitude"
+            formControlName="latitude"
+            class="form-control"
+            step="0.000001"
+            readonly
+            placeholder="Automatikusan kitöltve"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="longitude">Hosszúság (automatikusan kitöltve)</label>
+          <input
+            type="number"
+            id="longitude"
+            formControlName="longitude"
+            class="form-control"
+            step="0.000001"
+            readonly
+            placeholder="Automatikusan kitöltve"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Participants Section -->
+    <div class="form-section">
+      <h2 class="section-title">Résztvevők</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="min_participants">Minimum létszám *</label>
+          <input
+            type="number"
+            id="min_participants"
+            formControlName="min_participants"
+            class="form-control"
+            min="1"
+            [class.is-invalid]="f['min_participants'].invalid && f['min_participants'].touched"
+          />
+          <small>Hány fő alatt nem jön létre az esemény</small>
+        </div>
+
+        <div class="form-group">
+          <label for="max_participants">Maximum létszám *</label>
+          <input
+            type="number"
+            id="max_participants"
+            formControlName="max_participants"
+            class="form-control"
+            min="2"
+            [class.is-invalid]="f['max_participants'].invalid && f['max_participants'].touched"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Section -->
+    <div class="form-section">
+      <h2 class="section-title">Beállítások</h2>
+
+      <div class="checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="is_public" />
+          <span>Nyilvános esemény (mindenki láthatja)</span>
+        </label>
+      </div>
+
+      <div class="checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="requires_approval" />
+          <span>Jóváhagyás szükséges a csatlakozáshoz</span>
+        </label>
+      </div>
+
+      <div class="checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="is_free" />
+          <span>Ingyenes esemény</span>
+        </label>
+      </div>
+
+      <div class="form-group" *ngIf="!f['is_free'].value">
+        <label for="price">Részvételi díj (Ft) *</label>
+        <input
+          type="number"
+          id="price"
+          formControlName="price"
+          class="form-control"
+          min="0"
+          [class.is-invalid]="f['price'].invalid && f['price'].touched"
+          placeholder="1000"
+        />
+        <div *ngIf="f['price'].invalid && f['price'].touched" class="invalid-feedback">
+          <span *ngIf="f['price'].errors?.['required']">Az ár megadása kötelező.</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="notes">Megjegyzések</label>
+        <textarea
+          id="notes"
+          formControlName="notes"
+          class="form-control"
+          rows="3"
+          placeholder="További fontos információk..."
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Submit Buttons -->
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary btn-large" [disabled]="loading || eventForm.invalid">
+        <span *ngIf="!loading">✅ Esemény létrehozása</span>
+        <span *ngIf="loading">Létrehozás...</span>
+      </button>
+      <button type="button" class="btn btn-outline btn-large" routerLink="/events" [disabled]="loading">
+        Mégse
+      </button>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,105 @@
+<nav class="navbar">
+  <div class="navbar-container">
+    <!-- Logo -->
+    <a routerLink="/" class="navbar-brand" (click)="closeMenus()">
+      <span class="brand-icon">⚽</span>
+      <span class="brand-text">SportEvents</span>
+    </a>
+
+    <!-- Desktop Navigation -->
+    <div class="navbar-menu desktop-menu" *ngIf="authService.isAuthenticated()">
+      <a routerLink="/events" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">🏃</span>
+        Események
+      </a>
+      <a routerLink="/my-events" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">📅</span>
+        Saját események
+      </a>
+      <a routerLink="/create-event" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">➕</span>
+        Esemény létrehozása
+      </a>
+    </div>
+
+    <!-- Right Side Menu -->
+    <div class="navbar-actions">
+      <!-- Authenticated User -->
+      <div *ngIf="authService.isAuthenticated() && currentUser" class="user-menu">
+        <button class="user-button" (click)="toggleProfileMenu()">
+          <div class="user-avatar" *ngIf="!currentUser.profile_picture">
+            {{ getUserInitials() }}
+          </div>
+          <img 
+            *ngIf="currentUser.profile_picture" 
+            [src]="currentUser.profile_picture" 
+            alt="Profile"
+            class="user-avatar-img"
+          />
+          <span class="user-name desktop-only">{{ currentUser.full_name }}</span>
+          <span class="dropdown-icon">▼</span>
+        </button>
+
+        <!-- Dropdown Menu -->
+        <div class="dropdown-menu" *ngIf="isProfileMenuOpen">
+          <a routerLink="/profile" class="dropdown-item" (click)="closeMenus()">
+            <span class="item-icon">👤</span>
+            Profilom
+          </a>
+          <a routerLink="/settings" class="dropdown-item" (click)="closeMenus()">
+            <span class="item-icon">⚙️</span>
+            Beállítások
+          </a>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item logout-btn" (click)="logout()">
+            <span class="item-icon">🚪</span>
+            Kijelentkezés
+          </button>
+        </div>
+      </div>
+
+      <!-- Guest User -->
+      <div *ngIf="!authService.isAuthenticated()" class="auth-buttons">
+        <a routerLink="/login" class="btn btn-outline">Bejelentkezés</a>
+        <a routerLink="/register" class="btn btn-primary">Regisztráció</a>
+      </div>
+
+      <!-- Mobile Menu Toggle -->
+      <button class="mobile-menu-toggle" (click)="toggleMenu()" *ngIf="authService.isAuthenticated()">
+        <span class="hamburger" [class.active]="isMenuOpen"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" [class.active]="isMenuOpen" *ngIf="authService.isAuthenticated()">
+    <a routerLink="/events" routerLinkActive="active" class="mobile-link" (click)="closeMenus()">
+      <span class="nav-icon">🏃</span>
+      Események
+    </a>
+    <a routerLink="/my-events" routerLinkActive="active" class="mobile-link" (click)="closeMenus()">
+      <span class="nav-icon">📅</span>
+      Saját események
+    </a>
+    <a routerLink="/create-event" routerLinkActive="active" class="mobile-link" (click)="closeMenus()">
+      <span class="nav-icon">➕</span>
+      Esemény létrehozása
+    </a>
+    <div class="mobile-divider"></div>
+    <a routerLink="/profile" routerLinkActive="active" class="mobile-link" (click)="closeMenus()">
+      <span class="nav-icon">👤</span>
+      Profilom
+    </a>
+    <a routerLink="/settings" routerLinkActive="active" class="mobile-link" (click)="closeMenus()">
+      <span class="nav-icon">⚙️</span>
+      Beállítások
+    </a>
+    <button class="mobile-link logout-link" (click)="logout()">
+      <span class="nav-icon">🚪</span>
+      Kijelentkezés
+    </button>
+  </div>
+</nav>
+
+<!-- Overlay for closing menus -->
+<div class="menu-overlay" *ngIf="isMenuOpen || isProfileMenuOpen" (click)="closeMenus()"></div>

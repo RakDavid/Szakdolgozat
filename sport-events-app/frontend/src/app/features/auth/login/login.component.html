@@ -1,0 +1,64 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h1>Bejelentkezés</h1>
+      <p>Üdvözlünk újra! Jelentkezz be a fiókodba.</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
+      <!-- Error message -->
+      <div *ngIf="errorMessage" class="alert alert-error">
+        {{ errorMessage }}
+      </div>
+
+      <!-- Username field -->
+      <div class="form-group">
+        <label for="username">Felhasználónév</label>
+        <input
+          type="text"
+          id="username"
+          formControlName="username"
+          class="form-control"
+          [class.is-invalid]="f['username'].invalid && f['username'].touched"
+          placeholder="Írd be a felhasználóneved"
+        />
+        <div *ngIf="f['username'].invalid && f['username'].touched" class="invalid-feedback">
+          <span *ngIf="f['username'].errors?.['required']">A felhasználónév megadása kötelező.</span>
+        </div>
+      </div>
+
+      <!-- Password field -->
+      <div class="form-group">
+        <label for="password">Jelszó</label>
+        <input
+          type="password"
+          id="password"
+          formControlName="password"
+          class="form-control"
+          [class.is-invalid]="f['password'].invalid && f['password'].touched"
+          placeholder="Írd be a jelszavad"
+        />
+        <div *ngIf="f['password'].invalid && f['password'].touched" class="invalid-feedback">
+          <span *ngIf="f['password'].errors?.['required']">A jelszó megadása kötelező.</span>
+          <span *ngIf="f['password'].errors?.['minlength']">A jelszónak minimum 6 karakter hosszúnak kell lennie.</span>
+        </div>
+      </div>
+
+      <!-- Submit button -->
+      <button
+        type="submit"
+        class="btn btn-primary btn-block"
+        [disabled]="loading || loginForm.invalid"
+      >
+        <span *ngIf="loading" class="spinner"></span>
+        <span *ngIf="!loading">Bejelentkezés</span>
+        <span *ngIf="loading">Bejelentkezés...</span>
+      </button>
+    </form>
+
+    <!-- Register link -->
+    <div class="auth-footer">
+      <p>Még nincs fiókod? <a routerLink="/register">Regisztrálj most</a></p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,175 @@
+<div class="my-events-container">
+  <div class="page-header">
+    <h1>Saját események</h1>
+    <p>A létrehozott és a jelentkezett eseményeid egy helyen</p>
+    <p>Debug: loading={{ loading }}, tab={{ activeTab }}, count={{ createdEvents.length }}</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button 
+      class="tab-button" 
+      [class.active]="activeTab === 'created'"
+      (click)="switchTab('created')"
+    >
+      📝 Létrehozott események ({{ createdEvents.length }})
+    </button>
+    <button 
+      class="tab-button" 
+      [class.active]="activeTab === 'participating'"
+      (click)="switchTab('participating')"
+    >
+      👥 Részvételek ({{ participatingEvents.length }})
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Események betöltése...</p>
+  </div>
+
+  <!-- Created Events Tab -->
+  <div *ngIf="!loading && activeTab === 'created'" class="tab-content">
+    <div *ngIf="createdEvents.length > 0" class="events-grid">
+      <div 
+        *ngFor="let event of createdEvents" 
+        class="event-card"
+        [routerLink]="['/events', event.id]"
+      >
+        <div 
+          class="event-image" 
+          [style.background-image]="event.primary_image ? 'url(' + event.primary_image + ')' : 'none'"
+        >
+          <div class="event-status-badge" [class]="event.status">
+            {{ getStatusLabel(event.status) }}
+          </div>
+        </div>
+
+        <div class="event-content">
+          <div class="event-meta">
+            <span class="event-sport-type">
+              {{ event.sport_type_detail?.name }}
+            </span>
+            <span class="event-difficulty" [class]="event.difficulty">
+              {{ getDifficultyLabel(event.difficulty) }}
+            </span>
+          </div>
+
+          <h3 class="event-title">{{ event.title }}</h3>
+
+          <div class="event-details">
+            <div class="event-detail">
+              <span class="detail-icon">📅</span>
+              {{ getEventDate(event.start_date_time) }}
+            </div>
+            <div class="event-detail">
+              <span class="detail-icon">🕒</span>
+              {{ getEventTime(event.start_date_time) }}
+            </div>
+            <div class="event-detail">
+              <span class="detail-icon">📍</span>
+              {{ event.location_name }}
+            </div>
+          </div>
+
+          <div class="event-footer">
+            <div class="event-participants">
+              <span class="participants-icon">👥</span>
+              <span class="participants-text">
+                {{ event.participants_count }} / {{ event.max_participants }}
+              </span>
+            </div>
+            <div class="event-status-indicator" [class.full]="event.is_full">
+              {{ event.is_full ? 'Betelt' : event.available_spots + ' hely' }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="createdEvents.length === 0" class="empty-state">
+      <div class="empty-icon">📝</div>
+      <h3>Még nincs létrehozott eseményed</h3>
+      <p>Hozz létre egy új eseményt és hívd meg a közösséget!</p>
+      <button class="btn btn-primary" routerLink="/create-event">
+        ➕ Új esemény létrehozása
+      </button>
+    </div>
+  </div>
+
+  <!-- Participating Events Tab -->
+  <div *ngIf="!loading && activeTab === 'participating'" class="tab-content">
+    <div *ngIf="participatingEvents.length > 0" class="events-grid">
+      <div 
+        *ngFor="let event of participatingEvents" 
+        class="event-card"
+        [routerLink]="['/events', event.id]"
+      >
+        <div 
+          class="event-image" 
+          [style.background-image]="event.primary_image ? 'url(' + event.primary_image + ')' : 'none'"
+        >
+          <div class="event-status-badge" [class]="event.status">
+            {{ getStatusLabel(event.status) }}
+          </div>
+          <div *ngIf="event.user_participation_status" class="participation-badge" [class]="event.user_participation_status.status">
+            {{ event.user_participation_status.status === 'confirmed' ? '✓ Megerősítve' : 
+               event.user_participation_status.status === 'pending' ? '⏳ Függőben' : 
+               event.user_participation_status.status }}
+          </div>
+        </div>
+
+        <div class="event-content">
+          <div class="event-meta">
+            <span class="event-sport-type">
+              {{ event.sport_type_detail?.name }}
+            </span>
+            <span class="event-difficulty" [class]="event.difficulty">
+              {{ getDifficultyLabel(event.difficulty) }}
+            </span>
+          </div>
+
+          <h3 class="event-title">{{ event.title }}</h3>
+
+          <div class="event-details">
+            <div class="event-detail">
+              <span class="detail-icon">📅</span>
+              {{ getEventDate(event.start_date_time) }}
+            </div>
+            <div class="event-detail">
+              <span class="detail-icon">🕒</span>
+              {{ getEventTime(event.start_date_time) }}
+            </div>
+            <div class="event-detail">
+              <span class="detail-icon">📍</span>
+              {{ event.location_name }}
+            </div>
+          </div>
+
+          <div class="event-footer">
+            <div class="event-participants">
+              <span class="participants-icon">👥</span>
+              <span class="participants-text">
+                {{ event.participants_count }} / {{ event.max_participants }}
+              </span>
+            </div>
+            <div class="creator-info">
+              <span class="creator-label">Szervező:</span>
+              <span class="creator-name">{{ event.creator_detail?.full_name }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="participatingEvents.length === 0" class="empty-state">
+      <div class="empty-icon">👥</div>
+      <h3>Még nem jelentkeztél eseményekre</h3>
+      <p>Böngészd az elérhető eseményeket és csatlakozz!</p>
+      <button class="btn btn-primary" routerLink="/events">
+        🔍 Események böngészése
+      </button>
+    </div>
+  </div>
+</div>
