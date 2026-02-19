@@ -142,12 +142,43 @@
         <div *ngIf="isCreator" class="creator-actions">
           <h3>Saját esemény</h3>
           <p class="action-description">Te hoztad létre ezt az eseményt</p>
-          <button class="btn btn-outline btn-block" (click)="editEvent()">
-            ✏️ Szerkesztés
-          </button>
-          <button class="btn btn-danger btn-block" (click)="deleteEvent()">
-            🗑️ Törlés
-          </button>
+          
+          <!-- Függőben lévő kérések -->
+          <div *ngIf="pendingParticipants.length > 0" class="pending-section">
+            <h4 class="pending-title">
+              ⏳ Függőben lévő kérések ({{ pendingParticipants.length }})
+            </h4>
+            <div *ngFor="let p of pendingParticipants" class="pending-item">
+              <div class="pending-info">
+                <div class="pending-name">{{ p.user_detail?.full_name }}</div>
+                <div class="pending-username">{{ '@' + p.user_detail?.username }}</div>
+                <div *ngIf="p.notes" class="pending-notes">💬 "{{ p.notes }}"</div>
+                <div class="pending-time">{{ p.joined_at | date:'MMM d, HH:mm' }}</div>
+              </div>
+              <div class="pending-actions">
+                <button class="btn btn-success btn-small" (click)="approveParticipant(p.id)">
+                  ✓ Jóváhagyás
+                </button>
+                <button class="btn btn-danger btn-small" (click)="rejectParticipant(p.id)">
+                  ✕ Elutasítás
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="pendingParticipants.length === 0 && event.requires_approval" 
+              class="no-pending">
+            Nincs függőben lévő kérés
+          </div>
+
+          <div class="creator-btn-group">
+            <button class="btn btn-outline btn-block" (click)="editEvent()">
+              ✏️ Szerkesztés
+            </button>
+            <button class="btn btn-danger btn-block" (click)="deleteEvent()">
+              🗑️ Törlés
+            </button>
+          </div>
         </div>
 
         <!-- Join Actions -->

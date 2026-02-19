@@ -21,6 +21,13 @@
     >
       👥 Részvételek ({{ participatingEvents.length }})
     </button>
+    <button 
+      class="tab-button" 
+      [class.active]="activeTab === 'pending'"
+      (click)="switchTab('pending')"
+    >
+      ⏳ Jóváhagyások szükségesek
+    </button>
   </div>
 
   <!-- Loading -->

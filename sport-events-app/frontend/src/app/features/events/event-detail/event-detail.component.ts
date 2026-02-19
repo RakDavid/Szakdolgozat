@@ -172,6 +172,37 @@ export class EventDetailComponent implements OnInit {
     return this.event?.user_participation_status?.can_cancel || false;
   }
 
+  get pendingParticipants() {
+  return this.participants.filter(p => p.status === 'pending');
+}
+
+approveParticipant(participantId: number): void {
+  if (!this.event) return;
+  this.eventService.manageParticipant(this.event.id, participantId, { status: 'confirmed' })
+    .subscribe({
+      next: () => {
+        this.successMessage = 'Résztvevő jóváhagyva!';
+        this.loadParticipants(this.event!.id);
+        setTimeout(() => this.successMessage = '', 3000);
+      },
+      error: (err) => this.errorMessage = 'Hiba a jóváhagyás során.'
+    });
+}
+
+rejectParticipant(participantId: number): void {
+  if (!this.event) return;
+  if (!confirm('Biztosan elutasítod ezt a kérést?')) return;
+  this.eventService.manageParticipant(this.event.id, participantId, { status: 'rejected' })
+    .subscribe({
+      next: () => {
+        this.successMessage = 'Kérés elutasítva.';
+        this.loadParticipants(this.event!.id);
+        setTimeout(() => this.successMessage = '', 3000);
+      },
+      error: (err) => this.errorMessage = 'Hiba az elutasítás során.'
+    });
+}
+
   getEventDate(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleDateString('hu-HU', { 

@@ -16,7 +16,9 @@ export class MyEventsComponent implements OnInit {
   createdEvents: SportEvent[] = [];
   participatingEvents: SportEvent[] = [];
   loading = true;
-  activeTab: 'created' | 'participating' = 'created';
+  activeTab: 'created' | 'participating' | 'pending' = 'created';
+  pendingRequests: any[] = [];
+
 
   constructor(private eventService: EventService) {}
 
@@ -29,7 +31,7 @@ export class MyEventsComponent implements OnInit {
     this.eventService.getMyEvents().subscribe({
       next: (response) => {
         console.log('API response:', response);
-        this.createdEvents = response.results; // ← itt a lényeg
+        this.createdEvents = response.results;
         this.loading = false;
       },
       error: (error) => {
@@ -39,10 +41,20 @@ export class MyEventsComponent implements OnInit {
     });
   }
 
+  loadPendingRequests(): void {
+    this.eventService.getMyEvents().subscribe({
+      next: (response) => {
+        const myEventIds = response.results.map(e => e.id);
+        this.createdEvents = response.results;
+        this.loading = false;
+      }
+    });
+  }
+
   loadParticipatingEvents(): void {
     this.eventService.getMyParticipations().subscribe({
       next: (response) => {
-        this.participatingEvents = response.results; // ← szintén itt
+        this.participatingEvents = response.results;
       },
       error: (error) => {
         console.error('Error loading participating events', error);
@@ -50,7 +62,7 @@ export class MyEventsComponent implements OnInit {
     });
   }
 
-  switchTab(tab: 'created' | 'participating'): void {
+  switchTab(tab: 'created' | 'participating' | 'pending') {
     this.activeTab = tab;
   }
 

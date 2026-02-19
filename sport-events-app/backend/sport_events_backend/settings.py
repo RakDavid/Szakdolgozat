@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     # Local apps
     'accounts',
     'events',
+    'notifications',
 ]
 
 MIDDLEWARE = [
@@ -72,6 +73,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'sport_events_backend.wsgi.application'
 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'SportEvents <noreply@sportevents.hu>'
 
 # Database
 # PostgreSQL konfiguráció

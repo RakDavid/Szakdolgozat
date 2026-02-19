@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.db.models import Q, Count
 from math import radians, sin, cos, sqrt, atan2
 from .models import SportEvent, EventParticipant, EventImage
+from notifications.services import notify_join_request, notify_participant_status_change
 from .serializers import (
     SportEventListSerializer,
     SportEventDetailSerializer,
@@ -180,33 +181,38 @@ class JoinEventView(APIView):
     Body: {"notes": "..."} (opcionális)
     """
     permission_classes = [IsAuthenticated]
-    
+
     def post(self, request, pk):
         try:
             event = SportEvent.objects.get(pk=pk)
         except SportEvent.DoesNotExist:
-            return Response({
-                'error': 'Az esemény nem található.'
-            }, status=status.HTTP_404_NOT_FOUND)
-        
+            return Response({'error': 'Az esemény nem található.'}, status=status.HTTP_404_NOT_FOUND)
+
         serializer = JoinEventSerializer(
             data=request.data,
             context={'request': request, 'event': event}
         )
-        
+
         if serializer.is_valid():
-            # Résztvevő létrehozása
             participant = EventParticipant.objects.create(
                 event=event,
                 user=request.user,
                 notes=serializer.validated_data.get('notes', '')
             )
-            
+
+            # ÚJ: értesítés küldése jóváhagyásos eseménynél
+            if event.requires_approval:
+                notify_join_request(
+                    event=event,
+                    participant_user=request.user,
+                    notes=serializer.validated_data.get('notes', '')
+                )
+
             return Response({
                 'message': 'Sikeres jelentkezés!',
                 'participant': EventParticipantSerializer(participant).data
             }, status=status.HTTP_201_CREATED)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -278,6 +284,16 @@ class ManageParticipantView(generics.UpdateAPIView):
         event_id = self.kwargs['event_id']
         participant_id = self.kwargs['participant_id']
         return self.get_queryset().get(event_id=event_id, id=participant_id)
+    
+    def perform_update(self, serializer):
+        participant = serializer.save()
+        # ÚJ: értesítés küldése a résztvevőnek
+        if participant.status in ['confirmed', 'rejected']:
+            notify_participant_status_change(
+                event=participant.event,
+                participant_user=participant.user,
+                new_status=participant.status
+            )
 
 
 class RateEventView(generics.UpdateAPIView):

@@ -72,7 +72,8 @@ export class EventCreateComponent implements OnInit {
   initForm(): void {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    const defaultDate = tomorrow.toISOString().slice(0, 16);
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    const defaultDate = `${tomorrow.getFullYear()}-${pad(tomorrow.getMonth() + 1)}-${pad(tomorrow.getDate())}T${pad(tomorrow.getHours())}:${pad(tomorrow.getMinutes())}`;
 
     this.eventForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(200)]],
@@ -114,22 +115,36 @@ export class EventCreateComponent implements OnInit {
   getCurrentLocation(): void {
     if (navigator.geolocation) {
       this.useCurrentLocation = true;
+      this.searchingLocation = true;
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          this.selectedLocation = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          };
-          this.eventForm.patchValue({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            location_name: 'Jelenlegi helyzet'
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          this.selectedLocation = { lat, lng };
+          this.eventForm.patchValue({ latitude: lat, longitude: lng });
+
+          // Reverse geocoding: pontos cím lekérése
+          this.geocodingService.reverseGeocode(lat, lng).subscribe({
+            next: (address) => {
+              // Első rész = utca + házszám (Nominatim formátum)
+              const streetPart = address.split(',')[0]?.trim() || 'Jelenlegi helyszín';
+              this.eventForm.patchValue({
+                location_name: streetPart,
+                location_address: address
+              });
+              this.searchingLocation = false;
+            },
+            error: () => {
+              this.eventForm.patchValue({ location_name: 'Jelenlegi helyszín' });
+              this.searchingLocation = false;
+            }
           });
         },
         (error) => {
           console.error('Error getting location', error);
           alert('Nem sikerült lekérni a helyzeted. Kérlek, add meg manuálisan!');
           this.useCurrentLocation = false;
+          this.searchingLocation = false;
         }
       );
     } else {

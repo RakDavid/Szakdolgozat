@@ -9,6 +9,7 @@ urlpatterns = [
     # API endpoints
     path('api/', include('accounts.urls')),
     path('api/events/', include('events.urls')),
+    path('api/notifications/', include('notifications.urls')),
 ]
 
 # Media fájlok kiszolgálása development módban

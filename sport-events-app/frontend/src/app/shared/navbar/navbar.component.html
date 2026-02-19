@@ -24,6 +24,48 @@
 
     <!-- Right Side Menu -->
     <div class="navbar-actions">
+      <!-- Értesítések -->
+      <div *ngIf="authService.isAuthenticated()" class="notification-menu">
+        <button class="notification-btn" (click)="toggleNotifications()">
+          🔔
+          <span *ngIf="unreadCount > 0" class="notification-badge">
+            {{ unreadCount > 9 ? '9+' : unreadCount }}
+          </span>
+        </button>
+
+        <div class="notification-dropdown" *ngIf="showNotifications">
+          <div class="notif-header">
+            <h4>Értesítések</h4>
+            <button *ngIf="unreadCount > 0" class="btn-text" (click)="markAllRead()">
+              Összes olvasottnak
+            </button>
+          </div>
+
+          <div class="notif-list" *ngIf="notifications.length > 0">
+            <div
+              *ngFor="let notif of notifications"
+              class="notif-item"
+              [class.unread]="!notif.is_read"
+              [routerLink]="notif.related_event_id ? ['/events', notif.related_event_id] : null"
+              (click)="closeMenus()"
+            >
+              <div class="notif-icon">
+                {{ notif.notification_type === 'join_request' ? '👤' :
+                  notif.notification_type === 'join_approved' ? '✅' : '❌' }}
+              </div>
+              <div class="notif-content">
+                <div class="notif-title">{{ notif.title }}</div>
+                <div class="notif-message">{{ notif.message }}</div>
+                <div class="notif-time">{{ notif.created_at | date:'MMM d, HH:mm' }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="notifications.length === 0" class="notif-empty">
+            Nincs értesítésed
+          </div>
+        </div>
+      </div>
       <!-- Authenticated User -->
       <div *ngIf="authService.isAuthenticated() && currentUser" class="user-menu">
         <button class="user-button" (click)="toggleProfileMenu()">

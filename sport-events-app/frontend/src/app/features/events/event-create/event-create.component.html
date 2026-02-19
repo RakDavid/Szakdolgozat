@@ -171,33 +171,8 @@
         </div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label for="latitude">Szélesség (automatikusan kitöltve)</label>
-          <input
-            type="number"
-            id="latitude"
-            formControlName="latitude"
-            class="form-control"
-            step="0.000001"
-            readonly
-            placeholder="Automatikusan kitöltve"
-          />
-        </div>
-
-        <div class="form-group">
-          <label for="longitude">Hosszúság (automatikusan kitöltve)</label>
-          <input
-            type="number"
-            id="longitude"
-            formControlName="longitude"
-            class="form-control"
-            step="0.000001"
-            readonly
-            placeholder="Automatikusan kitöltve"
-          />
-        </div>
-      </div>
+      <input type="hidden" formControlName="latitude" />
+      <input type="hidden" formControlName="longitude" />
     </div>
 
     <!-- Participants Section -->
