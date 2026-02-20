@@ -46,8 +46,7 @@
               *ngFor="let notif of notifications"
               class="notif-item"
               [class.unread]="!notif.is_read"
-              [routerLink]="notif.related_event_id ? ['/events', notif.related_event_id] : null"
-              (click)="closeMenus()"
+              (click)="onNotifClick(notif)"
             >
               <div class="notif-icon">
                 {{ notif.notification_type === 'join_request' ? '👤' :
@@ -66,15 +65,16 @@
           </div>
         </div>
       </div>
+
       <!-- Authenticated User -->
       <div *ngIf="authService.isAuthenticated() && currentUser" class="user-menu">
         <button class="user-button" (click)="toggleProfileMenu()">
           <div class="user-avatar" *ngIf="!currentUser.profile_picture">
             {{ getUserInitials() }}
           </div>
-          <img 
-            *ngIf="currentUser.profile_picture" 
-            [src]="currentUser.profile_picture" 
+          <img
+            *ngIf="currentUser.profile_picture"
+            [src]="currentUser.profile_picture"
             alt="Profile"
             class="user-avatar-img"
           />

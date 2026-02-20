@@ -77,7 +77,6 @@
 }
 
 /* Notification */
-
 .notification-menu {
   position: relative;
 }
@@ -142,6 +141,7 @@
   position: sticky;
   top: 0;
   background: white;
+  z-index: 1;
 }
 
 .notif-header h4 {
@@ -149,6 +149,32 @@
   font-weight: 700;
   color: #333;
   margin: 0;
+}
+
+/* Szebb "Összes olvasottnak" gomb */
+.btn-text {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.btn-text:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.45);
+  opacity: 0.92;
+}
+
+.btn-text:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(102, 126, 234, 0.3);
 }
 
 .notif-item {
@@ -497,3 +523,5 @@
     font-size: 18px;
   }
 }
+
+

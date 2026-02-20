@@ -68,6 +68,7 @@ class SportEventListSerializer(serializers.ModelSerializer):
             'participants_count',
             'difficulty',
             'is_public',
+            'requires_approval',
             'is_free',
             'price',
             'status',

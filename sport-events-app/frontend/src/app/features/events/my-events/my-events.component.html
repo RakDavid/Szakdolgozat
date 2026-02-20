@@ -167,7 +167,13 @@
   <!-- ==================== JÓVÁHAGYÁSOK TAB ==================== -->
   <div *ngIf="!loading && activeTab === 'pending'" class="tab-content">
 
-    <div *ngIf="pendingRequests.length > 0" class="pending-list">
+    <!-- Pending loading state -->
+    <div *ngIf="pendingLoading" class="loading-container">
+      <div class="spinner"></div>
+      <p>Kérések betöltése...</p>
+    </div>
+
+    <div *ngIf="!pendingLoading && pendingRequests.length > 0" class="pending-list">
       <div *ngFor="let req of pendingRequests" class="pending-card">
         <!-- Esemény fejléc -->
         <div class="pending-event-header" [routerLink]="['/events', req.event.id]">
@@ -221,7 +227,7 @@
       </div>
     </div>
 
-    <div *ngIf="pendingRequests.length === 0" class="empty-state">
+    <div *ngIf="!pendingLoading && pendingRequests.length === 0" class="empty-state">
       <div class="empty-icon">✅</div>
       <h3>Nincs függőben lévő kérés</h3>
       <p>Minden jelentkezést kezelted, vagy nincs olyan eseményed, ahol jóváhagyás szükséges.</p>

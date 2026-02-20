@@ -4,7 +4,8 @@ import { RouterModule } from '@angular/router';
 import { EventService } from '../../../core/services/event.service';
 import { SportEvent, EventParticipant } from '../../../core/models/models';
 import { MapComponent } from '../../../shared/map/map.component';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-my-events',
@@ -19,6 +20,7 @@ export class MyEventsComponent implements OnInit {
   pendingRequests: Array<{ event: SportEvent; participant: EventParticipant }> = [];
 
   loading = true;
+  pendingLoading = false;
   activeTab: 'created' | 'participating' | 'pending' = 'created';
 
   approvingId: number | null = null;
@@ -55,20 +57,34 @@ export class MyEventsComponent implements OnInit {
   loadPendingRequests(): void {
     this.pendingRequests = [];
 
-    const approvalEvents = this.createdEvents.filter(e => e.requires_approval);
+    if (this.createdEvents.length === 0) {
+      this.pendingLoading = false;
+      return;
+    }
 
-    if (approvalEvents.length === 0) return;
+    this.pendingLoading = true;
 
-    approvalEvents.forEach(event => {
-      this.eventService.getEventParticipants(event.id).subscribe({
-        next: (response) => {
+    const requests = this.createdEvents.map(event =>
+      this.eventService.getEventParticipants(event.id).pipe(
+        catchError(() => of({ results: [] as EventParticipant[], count: 0, next: null, previous: null }))
+      )
+    );
+
+    forkJoin(requests).subscribe({
+      next: (responses) => {
+        this.pendingRequests = [];
+        responses.forEach((response, index) => {
+          const event = this.createdEvents[index];
           const pending = response.results.filter(p => p.status === 'pending');
           pending.forEach(participant => {
             this.pendingRequests.push({ event, participant });
           });
-        },
-        error: (err) => console.error(`Error loading participants for event ${event.id}`, err)
-      });
+        });
+        this.pendingLoading = false;
+      },
+      error: () => {
+        this.pendingLoading = false;
+      }
     });
   }
 
@@ -76,6 +92,9 @@ export class MyEventsComponent implements OnInit {
     this.activeTab = tab;
     this.successMessage = '';
     this.errorMessage = '';
+    if (tab === 'pending') {
+      this.loadPendingRequests();
+    }
   }
 
   approveParticipant(eventId: number, participantId: number): void {
