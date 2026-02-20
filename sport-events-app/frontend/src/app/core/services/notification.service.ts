@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, interval } from 'rxjs';
-import { switchMap, tap } from 'rxjs/operators';
+import { map, switchMap, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 export interface AppNotification {
@@ -24,7 +24,17 @@ export class NotificationService {
   constructor(private http: HttpClient) {}
 
   getNotifications(): Observable<AppNotification[]> {
-    return this.http.get<AppNotification[]>(`${this.apiUrl}/`);
+    return this.http.get<any>(`${this.apiUrl}/`).pipe(
+      map(response => {
+        if (response && Array.isArray(response.results)) {
+          return response.results as AppNotification[];
+        }
+        if (Array.isArray(response)) {
+          return response as AppNotification[];
+        }
+        return [];
+      })
+    );
   }
 
   getUnreadCount(): Observable<{ unread_count: number }> {
@@ -48,7 +58,6 @@ export class NotificationService {
     );
   }
 
-  // Polling: 30 másodpercenként frissíti az olvasatlan számot
   startPolling(): void {
     this.getUnreadCount().subscribe();
     interval(30000).pipe(

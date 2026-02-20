@@ -2,31 +2,34 @@
   <div class="page-header">
     <h1>Saját események</h1>
     <p>A létrehozott és a jelentkezett eseményeid egy helyen</p>
-    <p>Debug: loading={{ loading }}, tab={{ activeTab }}, count={{ createdEvents.length }}</p>
   </div>
+
+  <!-- Üzenetek -->
+  <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+  <div *ngIf="errorMessage" class="alert alert-error">{{ errorMessage }}</div>
 
   <!-- Tabs -->
   <div class="tabs">
-    <button 
-      class="tab-button" 
+    <button
+      class="tab-button"
       [class.active]="activeTab === 'created'"
       (click)="switchTab('created')"
     >
       📝 Létrehozott események ({{ createdEvents.length }})
     </button>
-    <button 
-      class="tab-button" 
+    <button
+      class="tab-button"
       [class.active]="activeTab === 'participating'"
       (click)="switchTab('participating')"
     >
       👥 Részvételek ({{ participatingEvents.length }})
     </button>
-    <button 
-      class="tab-button" 
+    <button
+      class="tab-button"
       [class.active]="activeTab === 'pending'"
       (click)="switchTab('pending')"
     >
-      ⏳ Jóváhagyások szükségesek
+      ⏳ Jóváhagyások ({{ pendingRequests.length }})
     </button>
   </div>
 
@@ -36,35 +39,29 @@
     <p>Események betöltése...</p>
   </div>
 
-  <!-- Created Events Tab -->
+  <!-- ==================== LÉTREHOZOTT ESEMÉNYEK TAB ==================== -->
   <div *ngIf="!loading && activeTab === 'created'" class="tab-content">
     <div *ngIf="createdEvents.length > 0" class="events-grid">
-      <div 
-        *ngFor="let event of createdEvents" 
+      <div
+        *ngFor="let event of createdEvents"
         class="event-card"
         [routerLink]="['/events', event.id]"
       >
-        <!-- Kép vagy térkép -->
         <div class="event-image-container">
           <div
             *ngIf="event.primary_image"
             class="event-image"
             [style.background-image]="'url(' + event.primary_image + ')'"
-          >
-          </div>
-          <div
-            *ngIf="!event.primary_image"
-            class="event-map"
-          >
-            <app-map 
-              [latitude]="event.latitude" 
+          ></div>
+          <div *ngIf="!event.primary_image" class="event-map">
+            <app-map
+              [latitude]="event.latitude"
               [longitude]="event.longitude"
               [zoom]="14"
               [height]="'200px'"
               [markers]="[{lat: event.latitude, lng: event.longitude, popup: event.location_name}]"
             ></app-map>
           </div>
-          
           <div class="event-status-badge" [class]="event.status">
             {{ getStatusLabel(event.status) }}
           </div>
@@ -72,37 +69,21 @@
 
         <div class="event-content">
           <div class="event-meta">
-            <span class="event-sport-type">
-              {{ event.sport_type_detail?.name }}
-            </span>
+            <span class="event-sport-type">{{ event.sport_type_detail?.name }}</span>
             <span class="event-difficulty" [class]="event.difficulty">
               {{ getDifficultyLabel(event.difficulty) }}
             </span>
           </div>
-
           <h3 class="event-title">{{ event.title }}</h3>
-
           <div class="event-details">
-            <div class="event-detail">
-              <span class="detail-icon">📅</span>
-              {{ getEventDate(event.start_date_time) }}
-            </div>
-            <div class="event-detail">
-              <span class="detail-icon">🕒</span>
-              {{ getEventTime(event.start_date_time) }}
-            </div>
-            <div class="event-detail">
-              <span class="detail-icon">📍</span>
-              {{ event.location_name }}
-            </div>
+            <div class="event-detail"><span class="detail-icon">📅</span>{{ getEventDate(event.start_date_time) }}</div>
+            <div class="event-detail"><span class="detail-icon">🕒</span>{{ getEventTime(event.start_date_time) }}</div>
+            <div class="event-detail"><span class="detail-icon">📍</span>{{ event.location_name }}</div>
           </div>
-
           <div class="event-footer">
             <div class="event-participants">
               <span class="participants-icon">👥</span>
-              <span class="participants-text">
-                {{ event.participants_count }} / {{ event.max_participants }}
-              </span>
+              {{ event.participants_count }} / {{ event.max_participants }}
             </div>
             <div class="event-status-indicator" [class.full]="event.is_full">
               {{ event.is_full ? 'Betelt' : event.available_spots + ' hely' }}
@@ -116,84 +97,55 @@
       <div class="empty-icon">📝</div>
       <h3>Még nincs létrehozott eseményed</h3>
       <p>Hozz létre egy új eseményt és hívd meg a közösséget!</p>
-      <button class="btn btn-primary" routerLink="/create-event">
-        ➕ Új esemény létrehozása
-      </button>
+      <button class="btn btn-primary" routerLink="/create-event">➕ Új esemény létrehozása</button>
     </div>
   </div>
 
-  <!-- Participating Events Tab -->
+  <!-- ==================== RÉSZVÉTELEK TAB ==================== -->
   <div *ngIf="!loading && activeTab === 'participating'" class="tab-content">
     <div *ngIf="participatingEvents.length > 0" class="events-grid">
-      <div 
-        *ngFor="let event of participatingEvents" 
+      <div
+        *ngFor="let event of participatingEvents"
         class="event-card"
         [routerLink]="['/events', event.id]"
       >
-        <!-- Kép vagy térkép -->
         <div class="event-image-container">
           <div
             *ngIf="event.primary_image"
             class="event-image"
             [style.background-image]="'url(' + event.primary_image + ')'"
-          >
-          </div>
-          <div
-            *ngIf="!event.primary_image"
-            class="event-map"
-          >
-            <app-map 
-              [latitude]="event.latitude" 
+          ></div>
+          <div *ngIf="!event.primary_image" class="event-map">
+            <app-map
+              [latitude]="event.latitude"
               [longitude]="event.longitude"
               [zoom]="14"
               [height]="'200px'"
               [markers]="[{lat: event.latitude, lng: event.longitude, popup: event.location_name}]"
             ></app-map>
           </div>
-          
-          <div class="event-status-badge" [class]="event.status">
-            {{ getStatusLabel(event.status) }}
-          </div>
+          <div class="event-status-badge" [class]="event.status">{{ getStatusLabel(event.status) }}</div>
           <div *ngIf="event.user_participation_status" class="participation-badge" [class]="event.user_participation_status.status">
-            {{ event.user_participation_status.status === 'confirmed' ? '✓ Megerősítve' : 
-               event.user_participation_status.status === 'pending' ? '⏳ Függőben' : 
+            {{ event.user_participation_status.status === 'confirmed' ? '✓ Megerősítve' :
+               event.user_participation_status.status === 'pending' ? '⏳ Függőben' :
                event.user_participation_status.status }}
           </div>
         </div>
-
         <div class="event-content">
           <div class="event-meta">
-            <span class="event-sport-type">
-              {{ event.sport_type_detail?.name }}
-            </span>
-            <span class="event-difficulty" [class]="event.difficulty">
-              {{ getDifficultyLabel(event.difficulty) }}
-            </span>
+            <span class="event-sport-type">{{ event.sport_type_detail?.name }}</span>
+            <span class="event-difficulty" [class]="event.difficulty">{{ getDifficultyLabel(event.difficulty) }}</span>
           </div>
-
           <h3 class="event-title">{{ event.title }}</h3>
-
           <div class="event-details">
-            <div class="event-detail">
-              <span class="detail-icon">📅</span>
-              {{ getEventDate(event.start_date_time) }}
-            </div>
-            <div class="event-detail">
-              <span class="detail-icon">🕒</span>
-              {{ getEventTime(event.start_date_time) }}
-            </div>
-            <div class="event-detail">
-              <span class="detail-icon">📍</span>
-              {{ event.location_name }}
-            </div>
+            <div class="event-detail"><span class="detail-icon">📅</span>{{ getEventDate(event.start_date_time) }}</div>
+            <div class="event-detail"><span class="detail-icon">🕒</span>{{ getEventTime(event.start_date_time) }}</div>
+            <div class="event-detail"><span class="detail-icon">📍</span>{{ event.location_name }}</div>
           </div>
-
           <div class="event-footer">
             <div class="event-participants">
               <span class="participants-icon">👥</span>
-              <span class="participants-text">
-                {{ event.participants_count }} / {{ event.max_participants }}
-              </span>
+              {{ event.participants_count }} / {{ event.max_participants }}
             </div>
             <div class="creator-info">
               <span class="creator-label">Szervező:</span>
@@ -208,9 +160,72 @@
       <div class="empty-icon">👥</div>
       <h3>Még nem jelentkeztél eseményekre</h3>
       <p>Böngészd az elérhető eseményeket és csatlakozz!</p>
-      <button class="btn btn-primary" routerLink="/events">
-        🔍 Események böngészése
-      </button>
+      <button class="btn btn-primary" routerLink="/events">🔍 Események böngészése</button>
     </div>
   </div>
+
+  <!-- ==================== JÓVÁHAGYÁSOK TAB ==================== -->
+  <div *ngIf="!loading && activeTab === 'pending'" class="tab-content">
+
+    <div *ngIf="pendingRequests.length > 0" class="pending-list">
+      <div *ngFor="let req of pendingRequests" class="pending-card">
+        <!-- Esemény fejléc -->
+        <div class="pending-event-header" [routerLink]="['/events', req.event.id]">
+          <span class="pending-event-title">{{ req.event.title }}</span>
+          <span class="pending-event-date">📅 {{ getEventDate(req.event.start_date_time) }}</span>
+        </div>
+
+        <!-- Résztvevő adatok -->
+        <div class="pending-participant">
+          <div class="pending-avatar">
+            <img
+              *ngIf="req.participant.user_detail?.profile_picture"
+              [src]="req.participant.user_detail?.profile_picture"
+              alt="Avatar"
+            />
+            <span *ngIf="!req.participant.user_detail?.profile_picture">
+              {{ req.participant.user_detail?.first_name?.charAt(0) }}{{ req.participant.user_detail?.last_name?.charAt(0) }}
+            </span>
+          </div>
+
+          <div class="pending-info">
+            <div class="pending-name">{{ req.participant.user_detail?.full_name }}</div>
+            <div class="pending-username">{{ '@' }}{{ req.participant.user_detail?.username }}</div>
+            <div *ngIf="req.participant.notes" class="pending-notes">
+              💬 "{{ req.participant.notes }}"
+            </div>
+            <div class="pending-time">
+              {{ req.participant.joined_at | date:'yyyy. MM. dd. HH:mm' }}
+            </div>
+          </div>
+
+          <div class="pending-actions">
+            <button
+              class="btn btn-success btn-small"
+              (click)="approveParticipant(req.event.id, req.participant.id)"
+              [disabled]="approvingId === req.participant.id || rejectingId === req.participant.id"
+            >
+              <span *ngIf="approvingId === req.participant.id">...</span>
+              <span *ngIf="approvingId !== req.participant.id">✓ Jóváhagyás</span>
+            </button>
+            <button
+              class="btn btn-danger btn-small"
+              (click)="rejectParticipant(req.event.id, req.participant.id)"
+              [disabled]="approvingId === req.participant.id || rejectingId === req.participant.id"
+            >
+              <span *ngIf="rejectingId === req.participant.id">...</span>
+              <span *ngIf="rejectingId !== req.participant.id">✕ Elutasítás</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="pendingRequests.length === 0" class="empty-state">
+      <div class="empty-icon">✅</div>
+      <h3>Nincs függőben lévő kérés</h3>
+      <p>Minden jelentkezést kezelted, vagy nincs olyan eseményed, ahol jóváhagyás szükséges.</p>
+    </div>
+  </div>
+
 </div>
