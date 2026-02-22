@@ -54,27 +54,27 @@ export class UserService {
    * Sportág preferenciák lekérése
    */
   getSportPreferences(): Observable<UserSportPreference[]> {
-    return this.http.get<UserSportPreference[]>(`${this.apiUrl}/users/sport-preferences/`);
+    return this.http.get<UserSportPreference[]>(`${this.apiUrl}/sport-preferences/`);
   }
 
   /**
    * Sportág preferencia létrehozása
    */
   createSportPreference(data: CreateUserSportPreference): Observable<UserSportPreference> {
-    return this.http.post<UserSportPreference>(`${this.apiUrl}/users/sport-preferences/`, data);
+    return this.http.post<UserSportPreference>(`${this.apiUrl}/sport-preferences/`, data);
   }
 
   /**
    * Sportág preferencia frissítése
    */
   updateSportPreference(id: number, data: Partial<CreateUserSportPreference>): Observable<UserSportPreference> {
-    return this.http.patch<UserSportPreference>(`${this.apiUrl}/users/sport-preferences/${id}/`, data);
+    return this.http.patch<UserSportPreference>(`${this.apiUrl}/sport-preferences/${id}/`, data);
   }
 
   /**
    * Sportág preferencia törlése
    */
   deleteSportPreference(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/users/sport-preferences/${id}/`);
+    return this.http.delete<void>(`${this.apiUrl}/sport-preferences/${id}/`);
   }
 }

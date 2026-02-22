@@ -16,13 +16,13 @@ export class SportTypeService {
    * Összes sportág lekérése
    */
   getAllSportTypes(): Observable<SportType[]> {
-    return this.http.get<SportType[]>(`${this.apiUrl}/sport-types/`);
+    return this.http.get<SportType[]>(`${this.apiUrl}/sports/`);
   }
 
   /**
    * Sportág lekérése ID alapján
    */
   getSportTypeById(id: number): Observable<SportType> {
-    return this.http.get<SportType>(`${this.apiUrl}/sport-types/${id}/`);
+    return this.http.get<SportType>(`${this.apiUrl}/sports/${id}/`);
   }
 }

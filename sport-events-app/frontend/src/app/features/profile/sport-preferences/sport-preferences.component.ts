@@ -45,14 +45,13 @@ export class SportPreferencesComponent implements OnInit {
     { value: 'advanced', label: 'Profi', icon: '🏆' }
   ];
 
-  // Sport ikonok map
-  sportIcons: { [key: string]: string } = {
-    'Futás': '🏃',
-    'Kerékpározás': '🚴',
-    'Úszás': '🏊',
+    sportIcons: { [key: string]: string } = {
     'Foci': '⚽',
+    'Futás': '🏃',
     'Kosárlabda': '🏀',
     'Tenisz': '🎾',
+    'Úszás': '🏊',
+    'Kerékpározás': '🚴',
     'Röplabda': '🏐',
     'Tollaslabda': '🏸',
     'Asztalitenisz': '🏓',
@@ -65,6 +64,18 @@ export class SportPreferencesComponent implements OnInit {
     'Görkorcsolya': '🛼',
     'Harcművészet': '🥋',
     'Crossfit': '🔥',
+    'Kézilabda': '🤾',
+    'Vízilabda': '🤽',
+    'Atlétika': '🏅',
+    'Cselgáncs': '🥋',
+    'Baseball': '⚾',
+    'Amerikaifoci': '🏈',
+    'Rögbi': '🏉',
+    'Bowling': '🎳',
+    'Dart': '🎯',
+    'Sakk': '♟️',
+    'Pilates': '🤸',
+    'Kajak-kenu': '🛶',
   };
 
   constructor(private http: HttpClient) {}

@@ -17,6 +17,7 @@ SECRET_KEY = 'django-insecure-your-secret-key-change-this-in-production'
 DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ANTHROPIC_API_KEY = 'sk-ant-api03-...'
 
 
 # Application definition

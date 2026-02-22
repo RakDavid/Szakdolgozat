@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
+from django.conf import settings
 import anthropic
 import json
 from .models import User, SportType, UserSportPreference
@@ -16,7 +17,6 @@ from .serializers import (
     SportTypeSerializer,
     UserSportPreferenceSerializer
 )
-
 
 class RegisterView(generics.CreateAPIView):
     """
@@ -276,7 +276,7 @@ class SportPreferenceAiSuggestView(APIView):
         ]}}"""
 
         try:
-            client = anthropic.Anthropic()
+            client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
             message = client.messages.create(
                 model="claude-opus-4-6",
                 max_tokens=1024,

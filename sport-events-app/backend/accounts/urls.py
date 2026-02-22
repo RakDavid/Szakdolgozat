@@ -32,10 +32,8 @@ urlpatterns = [
     path('sports/', SportTypeListView.as_view(), name='sport-type-list'),
 
     # Sport preferences (egyedi CRUD)
-    path('sport-preferences/', UserSportPreferenceListCreateView.as_view(), name='sport-preference-list'),
-    path('sport-preferences/<int:pk>/', UserSportPreferenceDetailView.as_view(), name='sport-preference-detail'),
-
-    # ÚJ: tömeges mentés és AI javaslat
     path('sport-preferences/bulk-update/', SportPreferenceBulkUpdateView.as_view(), name='sport-preference-bulk-update'),
     path('sport-preferences/ai-suggest/', SportPreferenceAiSuggestView.as_view(), name='sport-preference-ai-suggest'),
+    path('sport-preferences/', UserSportPreferenceListCreateView.as_view(), name='sport-preference-list'),
+    path('sport-preferences/<int:pk>/', UserSportPreferenceDetailView.as_view(), name='sport-preference-detail'),
 ]
