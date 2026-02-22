@@ -49,6 +49,13 @@ class SportEventListSerializer(serializers.ModelSerializer):
     available_spots = serializers.ReadOnlyField()
     distance = serializers.SerializerMethodField()
     
+    # ÚJ: ezek None-t adnak vissza alapból,
+    # a RecommendedEventsView felülírja őket
+    recommendation_score = serializers.FloatField(
+        read_only=True,
+        default=None
+    )
+
     class Meta:
         model = SportEvent
         fields = [
@@ -76,6 +83,7 @@ class SportEventListSerializer(serializers.ModelSerializer):
             'available_spots',
             'primary_image',
             'distance',
+            'recommendation_score',  # ÚJ
             'created_at'
         ]
         read_only_fields = ['id', 'created_at', 'creator']

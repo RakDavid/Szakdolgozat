@@ -66,7 +66,21 @@
 
     <div class="events-grid" *ngIf="!loading">
       <div class="event-card" *ngFor="let event of recommendedEvents" [routerLink]="['/events', event.id]">
-        <div class="event-image" [style.background-image]="event.primary_image ? 'url(' + event.primary_image + ')' : 'none'">
+        <div class="event-image-container">
+          <div
+            *ngIf="event.primary_image"
+            class="event-image"
+            [style.background-image]="'url(' + event.primary_image + ')'"
+          ></div>
+          <div *ngIf="!event.primary_image" class="event-map">
+            <app-map
+              [latitude]="event.latitude"
+              [longitude]="event.longitude"
+              [zoom]="14"
+              [height]="'180px'"
+              [markers]="[{lat: event.latitude, lng: event.longitude, popup: event.location_name}]"
+            ></app-map>
+          </div>
           <div class="event-badge" [class.free]="event.is_free">
             {{ event.is_free ? 'Ingyenes' : (event.price + ' Ft') }}
           </div>
@@ -91,6 +105,14 @@
             </div>
           </div>
           <div class="event-participants">
+            <div class="recommendation-info" *ngIf="event.recommendation_score">
+              <span class="score-badge">
+                ⭐ {{ event.recommendation_score }} pont
+              </span>
+              <span *ngIf="event.distance" class="distance-badge">
+                📍 {{ event.distance }} km
+              </span>
+            </div>
             <span class="participants-count">
               {{ event.participants_count }} / {{ event.max_participants }} résztvevő
             </span>
@@ -125,7 +147,21 @@
 
     <div class="events-grid" *ngIf="!loading">
       <div class="event-card" *ngFor="let event of upcomingEvents">
-        <div class="event-image" [style.background-image]="event.primary_image ? 'url(' + event.primary_image + ')' : 'none'">
+        <div class="event-image-container">
+          <div
+            *ngIf="event.primary_image"
+            class="event-image"
+            [style.background-image]="'url(' + event.primary_image + ')'"
+          ></div>
+          <div *ngIf="!event.primary_image" class="event-map">
+            <app-map
+              [latitude]="event.latitude"
+              [longitude]="event.longitude"
+              [zoom]="14"
+              [height]="'180px'"
+              [markers]="[{lat: event.latitude, lng: event.longitude, popup: event.location_name}]"
+            ></app-map>
+          </div>
           <div class="event-badge" [class.free]="event.is_free">
             {{ event.is_free ? 'Ingyenes' : (event.price + ' Ft') }}
           </div>

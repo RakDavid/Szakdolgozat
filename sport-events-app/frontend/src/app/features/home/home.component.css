@@ -170,12 +170,22 @@
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
 }
 
-.event-image {
+.event-image-container {
   height: 180px;
+  position: relative;
+  overflow: hidden;
+}
+
+.event-map {
+  height: 100%;
+  width: 100%;
+}
+
+.event-image {
+  height: 100%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   background-size: cover;
   background-position: center;
-  position: relative;
 }
 
 .event-badge {
@@ -327,6 +337,33 @@
 .section-footer {
   text-align: center;
   margin-top: 40px;
+}
+
+.recommendation-info {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e0e0e0;
+  flex-wrap: wrap;
+}
+
+.score-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.distance-badge {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 /* CTA Section */

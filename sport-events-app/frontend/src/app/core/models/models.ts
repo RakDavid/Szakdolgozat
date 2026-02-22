@@ -123,6 +123,7 @@ export interface SportEvent {
   primary_image?: string;
   participants_count?: number;
   distance?: number;
+  recommendation_score?: number;
   user_participation_status?: {
     status: string;
     joined_at: string;

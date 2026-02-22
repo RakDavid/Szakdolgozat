@@ -4,11 +4,12 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { EventService } from '../../core/services/event.service';
 import { SportEvent } from '../../core/models/models';
+import { MapComponent } from '../../shared/map/map.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, MapComponent],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
@@ -80,10 +81,16 @@ export class HomeComponent implements OnInit {
       next: (events) => {
         this.recommendedEvents = events.slice(0, 6);
         this.loading = false;
+        
+        // Ha nincs elég ajánlott esemény, töltsük fel közelgőkkel
+        if (this.recommendedEvents.length === 0) {
+          this.loadUpcomingEvents();
+        }
       },
       error: (error) => {
         console.error('Error loading recommended events', error);
-        this.loading = false;
+        // Hiba esetén fallback: közelgő események
+        this.loadUpcomingEvents();
       }
     });
   }

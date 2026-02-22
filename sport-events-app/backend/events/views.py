@@ -4,10 +4,12 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
-from django.db.models import Q, Count
+from django.db.models import Q, Count, F
+from django.db import models
 from math import radians, sin, cos, sqrt, atan2
 from .models import SportEvent, EventParticipant, EventImage
 from notifications.services import notify_join_request, notify_participant_status_change
+from .recommendation_service import get_recommended_events
 from .serializers import (
     SportEventListSerializer,
     SportEventDetailSerializer,
@@ -340,29 +342,24 @@ class RecommendedEventsView(generics.ListAPIView):
     """
     serializer_class = SportEventListSerializer
     permission_classes = [IsAuthenticated]
-    
-    def get_queryset(self):
-        user = self.request.user
+
+    def list(self, request, *args, **kwargs):
+        scored_events = get_recommended_events(
+            user=request.user,
+            max_results=20
+        )
+
+        events = []
+        for event, score, distance in scored_events:
+            events.append(event)
+
+        serializer = self.get_serializer(events, many=True)
         
-        # Felhasználó sportág preferenciái
-        preferred_sport_types = user.sport_preferences.values_list('sport_type_id', flat=True)
-        
-        # Események szűrése preferenciák alapján
-        queryset = SportEvent.objects.filter(
-            sport_type_id__in=preferred_sport_types,
-            status='upcoming',
-            is_public=True,
-            start_date_time__gte=timezone.now()
-        ).exclude(
-            # Ne ajánlja azokat, amikre már jelentkezett vagy amik betelt
-            Q(participants__user=user) | Q(participants__status='confirmed', 
-            participants__event__max_participants__lte=Count('participants'))
-        ).select_related('sport_type', 'creator').prefetch_related('images', 'participants')
-        
-        # Távolság alapú rendezés, ha van alapértelmezett helyszín
-        if user.default_latitude and user.default_longitude:
-            # Itt egyszerűsítés: csak visszaadjuk az eseményeket
-            # A távolság számítás a serializerben történik
-            pass
-        
-        return queryset[:20]  # Maximum 20 ajánlat
+        # Score és distance adatok hozzáfűzése a response-hoz
+        data = serializer.data
+        for i, (event, score, distance) in enumerate(scored_events):
+            data[i]['recommendation_score'] = score
+            if distance is not None:
+                data[i]['distance'] = distance
+
+        return Response(data)

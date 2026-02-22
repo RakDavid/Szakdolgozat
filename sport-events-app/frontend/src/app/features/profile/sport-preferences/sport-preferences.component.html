@@ -1,0 +1,135 @@
+<div class="preferences-container">
+
+  <!-- Header -->
+  <div class="section-header">
+    <div class="header-title">
+      <h2>Sportpreferenciák</h2>
+      <p class="subtitle">Válaszd ki a kedvelt sportágaidat, hogy személyre szabott ajánlásokat kaphass</p>
+    </div>
+    <button class="ai-btn" (click)="toggleAiPanel()">
+      <span class="ai-icon">🤖</span>
+      <span>AI segítség</span>
+    </button>
+  </div>
+
+  <!-- AI Panel -->
+  <div class="ai-panel" [class.open]="showAiPanel">
+    <div class="ai-panel-inner">
+      <h3>🤖 AI-alapú preferencia-generálás</h3>
+      <p>Írj pár mondatot a sportos szokásaidról, és az AI automatikusan beállítja a preferenciáidat.</p>
+      <textarea
+        [(ngModel)]="aiDescription"
+        placeholder="Pl. Hétvégente szeretek futni, nagyjából 10 km-t szoktam teljesíteni. Kezdő kerékpáros vagyok, néha biciklizem munkába. Régebben fociztem, de most inkább csak nézem..."
+        rows="4"
+      ></textarea>
+      <div class="ai-actions">
+        <button class="btn-secondary" (click)="toggleAiPanel()">Mégse</button>
+        <button class="btn-ai-generate" (click)="generateWithAi()" [disabled]="aiLoading || !aiDescription.trim()">
+          <span *ngIf="!aiLoading">✨ Generálás</span>
+          <span *ngIf="aiLoading" class="loading-dots">Elemzés...</span>
+        </button>
+      </div>
+
+      <!-- AI Javaslatok -->
+      <div class="ai-suggestions" *ngIf="aiSuggestions.length > 0">
+        <h4>Javasolt preferenciák:</h4>
+        <div class="suggestion-list">
+          <div class="suggestion-item" *ngFor="let s of aiSuggestions">
+            <span class="suggestion-icon">{{ getSportIcon(s.sport_type) }}</span>
+            <div class="suggestion-info">
+              <strong>{{ getSportName(s.sport_type) }}</strong>
+              <span class="suggestion-level">{{ s.skill_level }} · {{ s.interest_level }}/10 érdeklődés</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn-apply" (click)="applyAiSuggestions()">
+          ✅ Alkalmaz
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Sportágak betöltése...</p>
+  </div>
+
+  <!-- Sports Grid -->
+  <div class="sports-grid" *ngIf="!loading">
+    <div
+      class="sport-card"
+      *ngFor="let sport of sports"
+      [class.selected]="selectedSports.has(sport.id)"
+      (click)="toggleSport(sport.id)"
+    >
+      <div class="sport-card-header">
+        <span class="sport-emoji">{{ sport.icon }}</span>
+        <span class="sport-name">{{ sport.name }}</span>
+        <span class="check-mark" *ngIf="selectedSports.has(sport.id)">✓</span>
+      </div>
+
+      <!-- Preference controls - csak ha ki van választva -->
+      <div class="pref-controls" *ngIf="selectedSports.has(sport.id)" (click)="$event.stopPropagation()">
+
+        <!-- Szint -->
+        <div class="control-group">
+          <label>Szint</label>
+          <div class="skill-buttons">
+            <button
+              *ngFor="let skill of skillLevels"
+              class="skill-btn"
+              [class.active]="getPreference(sport.id)?.skill_level === skill.value"
+              (click)="setSkillLevel(sport.id, skill.value)"
+              [title]="skill.label"
+            >
+              {{ skill.icon }} {{ skill.label }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Érdeklődési szint -->
+        <div class="control-group">
+          <label>Érdeklődés: <span class="interest-value">{{ getPreference(sport.id)?.interest_level }}/10</span></label>
+          <div class="interest-label-text">{{ getInterestLabel(getPreference(sport.id)?.interest_level || 5) }}</div>
+          <input
+            type="range"
+            min="1"
+            max="10"
+            [value]="getPreference(sport.id)?.interest_level || 7"
+            (input)="setInterestLevel(sport.id, +$any($event.target).value)"
+            class="interest-slider"
+          />
+          <div class="slider-labels">
+            <span>1</span>
+            <span>5</span>
+            <span>10</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Összefoglalás és mentés -->
+  <div class="save-section" *ngIf="selectedSports.size > 0">
+    <div class="summary">
+      <span class="summary-count">{{ selectedSports.size }} sportág kiválasztva</span>
+    </div>
+    <button
+      class="btn-save"
+      (click)="savePreferences()"
+      [disabled]="saving"
+    >
+      <span *ngIf="!saving && !saveSuccess">💾 Mentés</span>
+      <span *ngIf="saving">Mentés...</span>
+      <span *ngIf="saveSuccess && !saving">✅ Elmentve!</span>
+    </button>
+  </div>
+
+  <!-- Üres állapot -->
+  <div class="empty-state" *ngIf="!loading && selectedSports.size === 0">
+    <p>Még nem választottál sportágat. Kattints bármelyikre a hozzáadáshoz!</p>
+  </div>
+
+</div>

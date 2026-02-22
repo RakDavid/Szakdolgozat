@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { SportPreferencesComponent } from '../sport-preferences/sport-preferences.component';
 import { ProfileEditComponent } from './profile-edit.component';
 
 describe('ProfileEditComponent', () => {
