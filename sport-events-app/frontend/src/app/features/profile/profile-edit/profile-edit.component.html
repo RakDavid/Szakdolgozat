@@ -167,37 +167,6 @@
       </div>
     </div>
 
-    <!-- Sport Preferences Section -->
-    <div class="form-section">
-      <div class="section-header">
-        <h2 class="section-title">Sportág preferenciák</h2>
-        <button type="button" class="btn btn-outline btn-small" (click)="addSportPreference()">
-          ➕ Új preferencia
-        </button>
-      </div>
-
-      <div *ngIf="sportPreferences.length > 0" class="preferences-list">
-        <div *ngFor="let pref of sportPreferences" class="preference-item">
-          <div class="preference-info">
-            <span class="preference-sport">{{ pref.sport_type_detail?.name }}</span>
-            <span class="preference-level">{{ getSkillLevelLabel(pref.skill_level) }}</span>
-            <span class="preference-interest">Érdeklődés: {{ pref.interest_level }}/10</span>
-          </div>
-          <button 
-            type="button" 
-            class="btn-delete" 
-            (click)="deleteSportPreference(pref.id)"
-          >
-            🗑️
-          </button>
-        </div>
-      </div>
-
-      <p *ngIf="sportPreferences.length === 0" class="empty-message">
-        Még nincs megadva preferencia. Adj hozzá sportágakat a jobb ajánlásokért!
-      </p>
-    </div>
-
     <!-- Submit Buttons -->
     <div class="form-actions">
       <button type="submit" class="btn btn-primary btn-large" [disabled]="saving || profileForm.invalid">
@@ -214,5 +183,10 @@
   <div *ngIf="loading" class="loading-container">
     <div class="spinner"></div>
     <p>Profil betöltése...</p>
+  </div>
+
+  <!-- ✅ Sport Preferences — külön szekció a form ALATT, önállóan kezeli a mentést -->
+  <div class="form-section" style="margin-top: 30px;" *ngIf="!loading">
+    <app-sport-preferences></app-sport-preferences>
   </div>
 </div>

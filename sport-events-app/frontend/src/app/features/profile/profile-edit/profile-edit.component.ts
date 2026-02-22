@@ -5,11 +5,17 @@ import { Router, RouterModule } from '@angular/router';
 import { UserService } from '../../../core/services/user.service';
 import { SportTypeService } from '../../../core/services/sport-type.service';
 import { User, UserUpdate, SportType, UserSportPreference, CreateUserSportPreference } from '../../../core/models/models';
+import { SportPreferencesComponent } from '../sport-preferences/sport-preferences.component';
 
 @Component({
   selector: 'app-profile-edit',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterModule,
+    SportPreferencesComponent
+  ],
   templateUrl: './profile-edit.component.html',
   styleUrls: ['./profile-edit.component.css']
 })
@@ -119,7 +125,6 @@ export class ProfileEditComponent implements OnInit {
     if (file) {
       this.selectedFile = file;
       
-      // Preview
       const reader = new FileReader();
       reader.onload = (e: any) => {
         this.imagePreview = e.target.result;
@@ -182,46 +187,8 @@ export class ProfileEditComponent implements OnInit {
     });
   }
 
-  addSportPreference(): void {
-    // Egyszerű prompt alapú hozzáadás - valós implementációban modális ablakot használj
-    const sportTypeId = prompt('Add meg a sportág ID-t (1-' + this.sportTypes.length + '):');
-    if (!sportTypeId) return;
-
-    const newPref: CreateUserSportPreference = {
-      sport_type: parseInt(sportTypeId),
-      skill_level: 'intermediate',
-      interest_level: 5
-    };
-
-    this.userService.createSportPreference(newPref).subscribe({
-      next: () => {
-        this.loadSportPreferences();
-        this.successMessage = 'Preferencia hozzáadva!';
-        setTimeout(() => this.successMessage = '', 3000);
-      },
-      error: (error) => {
-        console.error('Error adding preference', error);
-        this.errorMessage = 'Preferencia hozzáadása sikertelen.';
-      }
-    });
-  }
-
-  deleteSportPreference(id: number): void {
-    if (!confirm('Biztosan törölni szeretnéd ezt a preferenciát?')) return;
-
-    this.userService.deleteSportPreference(id).subscribe({
-      next: () => {
-        this.sportPreferences = this.sportPreferences.filter(p => p.id !== id);
-        this.successMessage = 'Preferencia törölve!';
-        setTimeout(() => this.successMessage = '', 3000);
-      },
-      error: (error) => {
-        console.error('Error deleting preference', error);
-        this.errorMessage = 'Preferencia törlése sikertelen.';
-      }
-    });
-  }
-
+  addSportPreference(): void {}
+  deleteSportPreference(id: number): void {}
   getSkillLevelLabel(level: string): string {
     const labels: { [key: string]: string } = {
       'beginner': 'Kezdő',

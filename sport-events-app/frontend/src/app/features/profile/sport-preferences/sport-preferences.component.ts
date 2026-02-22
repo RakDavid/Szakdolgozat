@@ -39,7 +39,7 @@ export class SportPreferencesComponent implements OnInit {
   aiSuggestions: SportPreference[] = [];
   showAiPanel = false;
 
-  skillLevels = [
+  skillLevels: { value: 'beginner' | 'intermediate' | 'advanced'; label: string; icon: string }[] = [
     { value: 'beginner', label: 'Kezdő', icon: '🌱' },
     { value: 'intermediate', label: 'Haladó', icon: '⚡' },
     { value: 'advanced', label: 'Profi', icon: '🏆' }
@@ -134,7 +134,7 @@ export class SportPreferencesComponent implements OnInit {
 
   savePreferences() {
     this.saving = true;
-    this.http.post('/api/sport-preferences/bulk_update/', {
+    this.http.post('/api/sport-preferences/bulk-update/', {
       preferences: this.preferences
     }).subscribe({
       next: () => {
@@ -156,7 +156,7 @@ export class SportPreferencesComponent implements OnInit {
     this.aiLoading = true;
     this.aiSuggestions = [];
 
-    this.http.post<any>('/api/sport-preferences/ai_suggest/', {
+    this.http.post<any>('/api/sport-preferences/ai-suggest/', {
       description: this.aiDescription
     }).subscribe({
       next: (res) => {
