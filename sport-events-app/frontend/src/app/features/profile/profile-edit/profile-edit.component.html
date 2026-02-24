@@ -112,48 +112,55 @@
     <div class="form-section">
       <h2 class="section-title">Alapértelmezett helyszín</h2>
 
-      <button type="button" class="btn btn-outline" (click)="getCurrentLocation()">
-        📍 Jelenlegi helyzet használata
-      </button>
-
       <div class="form-group">
-        <label for="default_location_name">Helyszín neve</label>
-        <input
-          type="text"
-          id="default_location_name"
-          formControlName="default_location_name"
-          class="form-control"
-          placeholder="pl: Budapest"
-        />
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label for="default_latitude">Szélesség</label>
+        <label for="default_location_name">Helyszín neve vagy címe</label>
+        
+        <div class="location-input-wrapper" style="display: flex; gap: 10px; align-items: flex-start; margin-bottom: 5px;">
           <input
-            type="number"
-            id="default_latitude"
-            formControlName="default_latitude"
+            type="text"
+            id="default_location_name"
+            formControlName="default_location_name"
             class="form-control"
-            step="0.000001"
-            placeholder="47.4979"
+            placeholder="Pl. Budapest, Váci út 1."
+            (keyup.enter)="searchLocationByAddress()"
+            style="flex: 1;"
           />
+          
+          <button 
+            type="button" 
+            class="btn btn-primary" 
+            (click)="searchLocationByAddress()" 
+            [disabled]="searchingLocation">
+            <span *ngIf="!searchingLocation">🔍 Keresés</span>
+            <span *ngIf="searchingLocation">⏳ ...</span>
+          </button>
+
+          <button 
+            type="button" 
+            class="btn btn-outline" 
+            (click)="getCurrentLocation()">
+            📍 Jelenlegi helyzet
+          </button>
         </div>
 
-        <div class="form-group">
-          <label for="default_longitude">Hosszúság</label>
-          <input
-            type="number"
-            id="default_longitude"
-            formControlName="default_longitude"
-            class="form-control"
-            step="0.000001"
-            placeholder="19.0402"
-          />
+        <div class="geocoding-results" *ngIf="showGeocodingResults && geocodingResults.length > 0">
+          <div class="results-header" style="display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; padding: 8px; border: 1px solid #ddd; border-bottom: none; border-radius: 4px 4px 0 0;">
+            <strong>Válassz a találatok közül:</strong>
+            <button type="button" class="btn-close" (click)="closeGeocodingResults()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer;">×</button>
+          </div>
+          <ul class="results-list" style="list-style: none; padding: 0; margin: 0; border: 1px solid #ddd; max-height: 200px; overflow-y: auto; border-radius: 0 0 4px 4px;">
+            <li *ngFor="let result of geocodingResults" 
+                (click)="selectGeocodingResult(result)"
+                style="padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; background: #fff;"
+                onmouseover="this.style.background='#f0f0f0'"
+                onmouseout="this.style.background='#fff'">
+              {{ result.display_name }}
+            </li>
+          </ul>
         </div>
       </div>
 
-      <div class="form-group">
+      <div class="form-group" style="margin-top: 20px;">
         <label for="default_search_radius">Keresési sugár (km)</label>
         <input
           type="number"
@@ -163,7 +170,7 @@
           min="1"
           max="100"
         />
-        <small>Alapértelmezett távolság az események kereséséhez</small>
+        <small class="text-muted">Alapértelmezett távolság az események kereséséhez</small>
       </div>
     </div>
 

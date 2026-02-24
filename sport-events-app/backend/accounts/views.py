@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from django.conf import settings
-import anthropic
+import google.generativeai as genai
 import json
 from .models import User, SportType, UserSportPreference
 from .serializers import (
@@ -243,75 +243,54 @@ class SportPreferenceAiSuggestView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        description = request.data.get('description', '').strip()
+        description = request.data.get('description', '')
         if not description:
-            return Response(
-                {'error': 'A description mező kötelező'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Elérhető sportágak
-        sports = list(SportType.objects.filter(is_active=True).values('id', 'name'))
-        sport_list_str = '\n'.join([f"  - id: {s['id']}, name: {s['name']}" for s in sports])
-
-        prompt = f"""Te egy sportajánló rendszer AI asszisztense vagy.
-        A felhasználó az alábbi leírást adta meg sportos szokásairól:
-
-        "{description}"
-
-        Az elérhető sportágak (id és name):
-        {sport_list_str}
-
-        Elemzd a leírást, és generálj sport preferencia ajánlásokat.
-        Csak azokat a sportágakat ajánld, amikre a leírásban utalás van. Maximum 6 sportágat.
-
-        Minden preferenciánál add meg:
-        - sport_type: a sportág ID-ja (csak a fenti listából)
-        - skill_level: "beginner", "intermediate", vagy "advanced"
-        - interest_level: 1-10 közötti egész szám
-
-        Válaszolj KIZÁRÓLAG valid JSON formátumban, semmi más szöveg:
-        {{"suggestions": [
-        {{"sport_type": 1, "skill_level": "intermediate", "interest_level": 8}}
-        ]}}"""
+            return Response({'error': 'Leírás megadása kötelező.'}, status=400)
 
         try:
-            client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
-            message = client.messages.create(
-                model="claude-opus-4-6",
-                max_tokens=1024,
-                messages=[{"role": "user", "content": prompt}]
-            )
+            # 1. Kérjük le a sportágakat az adatbázisból
+            sports = SportType.objects.filter(is_active=True)
+            if not sports.exists():
+                return Response({'error': 'Nincsenek sportágak az adatbázisban.'}, status=400)
 
-            response_text = message.content[0].text.strip()
+            # 2. Csináljunk belőle egy szöveges listát az AI-nak (pl. "1: Foci, 2: Kosár, 3: Úszás")
+            sport_list_text = ", ".join([f"{s.id}: {s.name}" for s in sports])
 
-            if '```' in response_text:
-                parts = response_text.split('```')
-                response_text = parts[1] if len(parts) > 1 else parts[0]
-                if response_text.startswith('json'):
-                    response_text = response_text[4:]
+            # 3. AI konfigurálása
+            api_key = getattr(settings, 'GEMINI_API_KEY', None)
+            genai.configure(api_key=api_key)
+            model = genai.GenerativeModel('gemini-2.5-flash-lite')
 
-            data = json.loads(response_text.strip())
-            suggestions = data.get('suggestions', [])
+            # 4. A Szuper-precíz Prompt
+            prompt = f"""
+            Felhasználó leírása: "{description}"
 
-            valid_sport_ids = {s['id'] for s in sports}
-            valid_suggestions = [
-                s for s in suggestions
-                if s.get('sport_type') in valid_sport_ids
-                and s.get('skill_level') in ('beginner', 'intermediate', 'advanced')
-                and isinstance(s.get('interest_level'), int)
-                and 1 <= s.get('interest_level') <= 10
-            ]
+            A feladatod, hogy a fenti magyar nyelvű leírás alapján sportág preferenciákat generálj.
 
-            return Response({'suggestions': valid_suggestions})
+            KIZÁRÓLAG az alábbi listából választhatsz sportágakat (ID: Név formatumban vannak):
+            {sport_list_text}
 
-        except json.JSONDecodeError:
-            return Response(
-                {'error': 'AI válasz nem értelmezhető, próbáld újra'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            Szabályok:
+            1. 'sport_type': Szigorúan az adott sportág száma (ID) a fenti listából. Ne a nevét írd be!
+            2. 'skill_level': Szigorúan csak ez a 3 szó lehet: 'beginner', 'intermediate', 'advanced'.
+            3. 'interest_level': Egy szám 1 és 10 között.
+
+            KIZÁRÓLAG egy érvényes, nyers JSON-t adj vissza markdown formázás (```) nélkül, az alábbi pontos struktúrában:
+            {{"suggestions": [{{"sport_type": 1, "skill_level": "beginner", "interest_level": 7}}]}}
+            """
+
+            response = model.generate_content(prompt)
+            
+            # JSON tisztítása (biztos ami biztos)
+            text_content = response.text
+            if "```" in text_content:
+                text_content = text_content.split("```json")[-1].split("```")[0].strip()
+            if text_content.startswith("```"):
+                text_content = text_content.replace("```", "").strip()
+            
+            suggestions_data = json.loads(text_content)
+            return Response(suggestions_data)
+
         except Exception as e:
-            return Response(
-                {'error': f'AI hiba: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            print(f"AI ERROR: {str(e)}") 
+            return Response({'error': 'Hiba a feldolgozás során.'}, status=500)

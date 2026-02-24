@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { UserService } from '../../../core/services/user.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { User, UserSportPreference } from '../../../core/models/models';
+import { SportTypeService } from '../../../core/services/sport-type.service'; // Ezt add hozzá!
+import { User, UserSportPreference, SportType } from '../../../core/models/models'; // SportType is kell!
 
 @Component({
   selector: 'app-profile-view',
@@ -15,18 +16,49 @@ import { User, UserSportPreference } from '../../../core/models/models';
 export class ProfileViewComponent implements OnInit {
   user: User | null = null;
   sportPreferences: UserSportPreference[] = [];
+  sportTypes: SportType[] = []; // Ide mentjük a sportágakat
   loading = true;
   errorMessage = '';
 
   constructor(
     private userService: UserService,
     private authService: AuthService,
+    private sportTypeService: SportTypeService, // Injektáljuk a szervizt
     private router: Router
   ) {}
 
   ngOnInit(): void {
     this.loadUserProfile();
     this.loadSportPreferences();
+    this.loadSportTypes(); // Ezt is meghívjuk induláskor
+  }
+
+  // --- ÚJ FÜGGVÉNYEK ---
+
+  loadSportTypes(): void {
+    this.sportTypeService.getAllSportTypes().subscribe({
+      next: (types) => {
+        // Kezeljük, ha tömb vagy ha objektum (results)
+        this.sportTypes = Array.isArray(types) ? types : (types as any).results || [];
+      },
+      error: (error) => console.error('Error loading sport types', error)
+    });
+  }
+
+  getSportName(sportId: number): string {
+    const sport = this.sportTypes.find(s => s.id === sportId);
+    return sport ? sport.name : 'Ismeretlen sportág';
+  }
+
+  // Opcionális: Ha ikonokat is akarsz (ahogy az editornál volt)
+  getSportIcon(sportId: number): string {
+    const icons: { [key: string]: string } = {
+      'Futás': '🏃', 'Kerékpározás': '🚴', 'Úszás': '🏊', 'Foci': '⚽',
+      'Kosárlabda': '🏀', 'Tenisz': '🎾', 'Röplabda': '🏐', 'Tollaslabda': '🏸',
+      'Asztalitenisz': '🏓', 'Jóga': '🧘', 'Fitnesz': '💪', 'Túrázás': '🥾'
+    };
+    const name = this.getSportName(sportId);
+    return icons[name] || '🎯';
   }
 
   loadUserProfile(): void {
@@ -46,14 +78,28 @@ export class ProfileViewComponent implements OnInit {
   loadSportPreferences(): void {
     this.userService.getSportPreferences().subscribe({
       next: (preferences) => {
-        this.sportPreferences = preferences;
+        console.log('Backend válasz (preferenciák):', preferences); // Ezt add hozzá!
+        
+        // Ha a válasz egy objektum "results" kulccsal:
+        if (preferences && (preferences as any).results) {
+            this.sportPreferences = (preferences as any).results;
+        } 
+        // Ha közvetlenül egy tömb:
+        else if (Array.isArray(preferences)) {
+            this.sportPreferences = preferences;
+        } 
+        // Ha valami más (pl. egy formázatlan string)
+        else {
+            this.sportPreferences = [];
+        }
+        
+        console.log('Feldolgozott preferenciák:', this.sportPreferences); // Ezt is!
       },
       error: (error) => {
         console.error('Error loading sport preferences', error);
       }
     });
   }
-
   editProfile(): void {
     this.router.navigate(['/profile/edit']);
   }

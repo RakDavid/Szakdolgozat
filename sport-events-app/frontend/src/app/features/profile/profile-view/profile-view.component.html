@@ -51,16 +51,19 @@
       <div class="section-card">
         <h2 class="section-title">Sportág preferenciák</h2>
         <div *ngIf="sportPreferences.length > 0" class="preferences-list">
-          <div 
-            *ngFor="let pref of sportPreferences" 
-            class="preference-item"
-          >
+          
+          <div *ngFor="let pref of sportPreferences" class="preference-item">
             <div class="preference-header">
-              <span class="preference-sport">{{ pref.sport_type_detail?.name }}</span>
+              
+              <span class="preference-sport">
+                {{ getSportIcon(pref.sport_type) }} {{ getSportName(pref.sport_type) }}
+              </span>
+              
               <span class="preference-level" [class]="pref.skill_level">
                 {{ getSkillLevelLabel(pref.skill_level) }}
               </span>
             </div>
+            
             <div class="preference-interest">
               <span class="interest-label">Érdeklődési szint:</span>
               <div class="interest-bar">
@@ -72,7 +75,9 @@
               <span class="interest-value">{{ pref.interest_level }}/10</span>
             </div>
           </div>
+
         </div>
+        
         <div *ngIf="sportPreferences.length === 0" class="empty-message">
           Még nincs megadva sportág preferencia. Adj hozzá preferenciákat a jobb ajánlásokért!
         </div>
