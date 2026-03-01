@@ -137,7 +137,7 @@ class UserDetailView(generics.RetrieveAPIView):
     GET /api/users/{id}/
     """
     queryset = User.objects.filter(is_active=True)
-    serializer_class = UserSerializer
+    serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
 
 

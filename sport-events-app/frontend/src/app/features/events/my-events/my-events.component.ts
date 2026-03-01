@@ -42,8 +42,9 @@ export class MyEventsComponent implements OnInit {
       participations: this.eventService.getMyParticipations()
     }).subscribe({
       next: ({ myEvents, participations }) => {
-        this.createdEvents = myEvents.results;
-        this.participatingEvents = participations.results;
+        this.createdEvents = myEvents.results.filter(e => this.isEventActive(e));
+        this.participatingEvents = participations.results.filter(e => this.isEventActive(e));
+        
         this.loading = false;
         this.loadPendingRequests();
       },
@@ -52,6 +53,20 @@ export class MyEventsComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+
+  private isEventActive(event: SportEvent): boolean {
+    const now = new Date();
+    
+    if (event.end_date_time) {
+      return new Date(event.end_date_time) >= now;
+    }
+    
+    const eventEnd = new Date(event.start_date_time);
+    eventEnd.setMinutes(eventEnd.getMinutes() + (event.duration_minutes || 180));
+    
+    return eventEnd >= now;
   }
 
   loadPendingRequests(): void {

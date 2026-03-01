@@ -50,6 +50,12 @@ export const routes: Routes = [
     title: 'Új esemény - SportEvents'
   },
   {
+    path: 'events/:id/edit',
+    component: EventCreateComponent,
+    canActivate: [AuthGuard],
+    title: 'Esemény szerkesztése - SportEvents'
+  },
+  {
     path: 'my-events',
     component: MyEventsComponent,
     canActivate: [AuthGuard],
@@ -60,6 +66,12 @@ export const routes: Routes = [
     component: ProfileViewComponent,
     canActivate: [AuthGuard],
     title: 'Profilom - SportEvents'
+  },
+  {
+    path: 'users/:id',
+    component: ProfileViewComponent,
+    canActivate: [AuthGuard],
+    title: 'Felhasználói profil - SportEvents'
   },
   {
     path: 'profile/edit',

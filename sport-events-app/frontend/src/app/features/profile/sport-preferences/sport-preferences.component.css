@@ -68,7 +68,7 @@
 }
 
 .ai-panel.open {
-  max-height: 600px;
+  max-height: 1200px;
   margin-bottom: 24px;
 }
 
@@ -439,6 +439,62 @@
   cursor: not-allowed;
 }
 
+.form-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center; 
+  padding-top: 20px;
+}
+
+.form-section {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  margin-bottom: 30px;
+}
+
+.btn {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: none;
+}
+
+.btn-large {
+  padding: 16px 36px;
+  font-size: 16px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+.btn-outline {
+  background: transparent;
+  color: #667eea;
+  border: 2px solid #667eea;
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: #667eea;
+  color: white;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* === EMPTY STATE === */
 .empty-state {
   text-align: center;
@@ -476,6 +532,15 @@
   }
 
   .btn-save {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .form-actions {
+    flex-direction: column;
+  }
+  .form-actions .btn {
     width: 100%;
   }
 }

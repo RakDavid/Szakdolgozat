@@ -1,7 +1,11 @@
 <div class="create-event-container">
   <div class="page-header">
-    <h1>Új esemény létrehozása</h1>
-    <p>Hozz létre egy sportrendezvényt és hívd meg a közösséget!</p>
+    <h1 class="page-title">
+      {{ isEditMode ? 'Esemény szerkesztése' : 'Új esemény létrehozása' }}
+    </h1>
+    <p class="page-description">
+      {{ isEditMode ? 'Módosítsd a korábban megadott adatokat.' : 'Töltsd ki az alábbi űrlapot a sportesemény meghirdetéséhez.' }}
+    </p>
   </div>
 
   <!-- Error Message -->
@@ -263,7 +267,7 @@
     <!-- Submit Buttons -->
     <div class="form-actions">
       <button type="submit" class="btn btn-primary btn-large" [disabled]="loading || eventForm.invalid">
-        <span *ngIf="!loading">✅ Esemény létrehozása</span>
+        <span *ngIf="!loading">{{ isEditMode ? '💾 Változtatások mentése' : '✅  Esemény létrehozása' }}</span>
         <span *ngIf="loading">Létrehozás...</span>
       </button>
       <button type="button" class="btn btn-outline btn-large" routerLink="/events" [disabled]="loading">

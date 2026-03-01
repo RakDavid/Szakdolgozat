@@ -77,4 +77,12 @@ export class UserService {
   deleteSportPreference(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/sport-preferences/${id}/`);
   }
+
+  getUserPreferencesById(userId: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/users/${userId}/preferences/`); 
+  }
+
+  changePassword(passwordData: any): Observable<any> {
+    return this.http.post('/api/users/change-password/', passwordData);
+  }
 }

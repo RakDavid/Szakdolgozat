@@ -294,6 +294,7 @@
   gap: 15px;
   opacity: 0;
   transition: opacity 0.3s;
+  z-index: 1000; 
 }
 
 .event-card:hover .event-login-overlay {
@@ -342,9 +343,7 @@
 .recommendation-info {
   display: flex;
   gap: 8px;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid #e0e0e0;
+  margin-bottom: 15px;
   flex-wrap: wrap;
 }
 
@@ -434,6 +433,19 @@
 .btn-outline:hover {
   background: white;
   color: #667eea;
+}
+
+.btn-outline-primary {
+  background: transparent;
+  color: #667eea;
+  border: 2px solid #667eea;
+}
+
+.btn-outline-primary:hover {
+  background: #667eea;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
 }
 
 /* Responsive */

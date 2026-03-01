@@ -61,13 +61,11 @@ export class NavbarComponent implements OnInit {
   }
 
   onNotifClick(notif: any): void {
-    // Ha még olvasatlan, jelöljük olvasottnak és csökkentsük a badge-et
     if (!notif.is_read) {
       this.notificationService.markRead(notif.id).subscribe(() => {
         notif.is_read = true;
       });
     }
-    // Ha van kapcsolódó esemény, navigáljunk oda és zárjuk be a dropdownt
     if (notif.related_event_id) {
       this.showNotifications = false;
       this.router.navigate(['/events', notif.related_event_id]);
@@ -103,6 +101,6 @@ export class NavbarComponent implements OnInit {
     if (!this.currentUser) return '';
     const firstInitial = this.currentUser.first_name?.charAt(0) || '';
     const lastInitial = this.currentUser.last_name?.charAt(0) || '';
-    return (firstInitial + lastInitial).toUpperCase() || this.currentUser.username.charAt(0).toUpperCase();
+    return (lastInitial + firstInitial).toUpperCase() || this.currentUser.username.charAt(0).toUpperCase();
   }
 }

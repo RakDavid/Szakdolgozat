@@ -133,8 +133,9 @@ export class EventService {
   /**
    * Esemény értékelése
    */
-  rateEvent(eventId: number, data: RateEvent): Observable<any> {
-    return this.http.post(`${this.apiUrl}/${eventId}/rate/`, data);
+  rateEvent(eventId: number, rating: number, feedback: string = ''): Observable<any> {
+    const payload = { rating, feedback };
+    return this.http.patch(`/api/events/${eventId}/rate/`, payload);
   }
 
   /**

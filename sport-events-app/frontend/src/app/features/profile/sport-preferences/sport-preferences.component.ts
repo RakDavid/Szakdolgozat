@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Router, RouterModule } from '@angular/router';
+
 
 interface SportType {
   id: number;
@@ -20,7 +22,7 @@ interface SportPreference {
 @Component({
   selector: 'app-sport-preferences',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './sport-preferences.component.html',
   styleUrls: ['./sport-preferences.component.css']
 })
@@ -33,7 +35,6 @@ export class SportPreferencesComponent implements OnInit {
   loading = true;
   saveSuccess = false;
 
-  // AI-alapú beállítás
   aiDescription = '';
   aiLoading = false;
   aiSuggestions: SportPreference[] = [];
@@ -78,7 +79,8 @@ export class SportPreferencesComponent implements OnInit {
     'Kajak-kenu': '🛶',
   };
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private router: Router) {}
+
 
   ngOnInit() {
     this.loadSports();
@@ -108,7 +110,7 @@ export class SportPreferencesComponent implements OnInit {
     });
   }
 
-  toggleSport(sportId: number) {
+  toggleSport(sportId: number): void {
     if (this.selectedSports.has(sportId)) {
       this.selectedSports.delete(sportId);
       this.preferences = this.preferences.filter(p => p.sport_type !== sportId);
@@ -117,7 +119,7 @@ export class SportPreferencesComponent implements OnInit {
       this.preferences.push({
         sport_type: sportId,
         skill_level: 'beginner',
-        interest_level: 7
+        interest_level: 1 
       });
     }
   }
@@ -150,14 +152,12 @@ export class SportPreferencesComponent implements OnInit {
     }).subscribe({
       next: () => {
         this.saving = false;
-        this.saveSuccess = true;
-        setTimeout(() => this.saveSuccess = false, 3000);
+        this.router.navigate(['/profile']);
       },
       error: () => { this.saving = false; }
     });
   }
-
-  // AI segítség
+  
   toggleAiPanel() {
     this.showAiPanel = !this.showAiPanel;
   }

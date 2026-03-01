@@ -1,7 +1,7 @@
 <div class="profile-container" *ngIf="!loading && user">
   <!-- Profile Header -->
   <div class="profile-header">
-    <div class="profile-banner"></div>
+    <div class="profile-banner" [style.backgroundImage]="getBannerBackground()"></div>
     <div class="profile-info">
       <div class="profile-avatar-wrapper">
         <div class="profile-avatar" *ngIf="!user.profile_picture">
@@ -19,8 +19,8 @@
         <p class="profile-username">{{ '@' + user.username }}</p>
         <p class="profile-member-since">📅 Tag {{ getMemberSince() }} óta</p>
       </div>
-      <div class="profile-actions">
-        <button class="btn btn-primary" (click)="editProfile()">
+      <div *ngIf="isOwnProfile" class="profile-actions">
+        <button class="btn btn-primary" (click)="editProfile()" [routerLink]="['/profile/edit']" [queryParams]="{tab: 'personal'}">
           ✏️ Profil szerkesztése
         </button>
       </div>
@@ -49,7 +49,12 @@
 
       <!-- Sport Preferences -->
       <div class="section-card">
-        <h2 class="section-title">Sportág preferenciák</h2>
+        <div class="section-header-with-action">
+          <h2 class="section-title" style="margin-bottom: 0;">Sportág preferenciák</h2>
+          <button *ngIf="isOwnProfile" class="btn btn-primary" [routerLink]="['/profile/edit']" [queryParams]="{tab: 'preferences'}">
+            ✏️ Szerkesztés
+          </button>
+        </div>
         <div *ngIf="sportPreferences.length > 0" class="preferences-list">
           
           <div *ngFor="let pref of sportPreferences" class="preference-item">
@@ -85,19 +90,53 @@
 
       <!-- Statistics -->
       <div class="section-card">
-        <h2 class="section-title">Statisztikák</h2>
+        <h2 class="section-title">Statisztikák és Események</h2>
+        
         <div class="stats-grid">
-          <div class="stat-item">
+          <div class="stat-item" [class.clickable]="isOwnProfile" [class.active]="showCreated" (click)="toggleCreatedEvents()">
             <div class="stat-icon">📝</div>
             <div class="stat-value">{{ user.created_events_count || 0 }}</div>
             <div class="stat-label">Létrehozott esemény</div>
           </div>
-          <div class="stat-item">
+          <div class="stat-item" [class.clickable]="isOwnProfile" [class.active]="showParticipated" (click)="toggleParticipatedEvents()">
             <div class="stat-icon">🏃</div>
             <div class="stat-value">{{ user.participated_events_count || 0 }}</div>
             <div class="stat-label">Részvétel</div>
           </div>
         </div>
+
+        <div class="stats-dropdown" *ngIf="showCreated || showParticipated">
+          <div *ngIf="loadingEvents" class="dropdown-loading">
+            <div class="spinner small"></div> Betöltés...
+          </div>
+
+          <div *ngIf="showCreated && !loadingEvents" class="dropdown-content">
+            <h4 class="dropdown-title">Saját szervezésű eseményeim</h4>
+            <div class="dropdown-list">
+              <a *ngFor="let event of createdEvents" [routerLink]="['/events', event.id]" class="dropdown-item">
+                <div class="dropdown-event-main">
+                  <span class="dropdown-event-date">{{ event.start_date_time | date:'yyyy.MM.dd.' }}</span>
+                  <span class="dropdown-event-title">{{ event.title }}</span>
+                </div>
+              </a>
+              <div *ngIf="createdEvents.length === 0" class="dropdown-empty">Még nem hoztál létre eseményt.</div>
+            </div>
+          </div>
+
+          <div *ngIf="showParticipated && !loadingEvents" class="dropdown-content">
+            <h4 class="dropdown-title">Események, amiken részt vettem</h4>
+            <div class="dropdown-list">
+              <a *ngFor="let event of participatedEvents" [routerLink]="['/events', event.id]" class="dropdown-item">
+                <div class="dropdown-event-main">
+                  <span class="dropdown-event-date">{{ event.start_date_time | date:'yyyy.MM.dd.' }}</span>
+                  <span class="dropdown-event-title">{{ event.title }}</span>
+                </div>
+              </a>
+              <div *ngIf="participatedEvents.length === 0" class="dropdown-empty">Még nem jelentkeztél eseményre.</div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -119,7 +158,7 @@
       </div>
 
       <!-- Location Info -->
-      <div class="sidebar-card" *ngIf="user.default_location_name">
+      <div class="sidebar-card" *ngIf="isOwnProfile && user.default_location_name">
         <h3 class="sidebar-title">Alapértelmezett helyszín</h3>
         <div class="location-info">
           <div class="location-icon">📍</div>

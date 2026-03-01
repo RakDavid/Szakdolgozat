@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { EventService } from '../../../core/services/event.service';
 import { SportTypeService } from '../../../core/services/sport-type.service';
 import { GeocodingService, GeocodingResult } from '../../../core/services/geocoding.service';
@@ -20,6 +20,8 @@ export class EventCreateComponent implements OnInit {
   loading = false;
   errorMessage = '';
   errors: any = {};
+  isEditMode = false;
+  eventId: number | null = null;
 
   selectedFile: File | null = null;
   imagePreview: string | null = null;
@@ -36,12 +38,20 @@ export class EventCreateComponent implements OnInit {
     private eventService: EventService,
     private sportTypeService: SportTypeService,
     private geocodingService: GeocodingService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
     this.loadSportTypes();
     this.initForm();
+
+    const idParam = this.route.snapshot.paramMap.get('id');
+    if (idParam) {
+      this.isEditMode = true;
+      this.eventId = +idParam;
+      this.loadEventData(this.eventId);
+    }
   }
 
   loadSportTypes(): void {
@@ -70,11 +80,11 @@ export class EventCreateComponent implements OnInit {
   }
 
   initForm(): void {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    const targetDate = new Date();
+    targetDate.setHours(targetDate.getHours() + 1);
     const pad = (n: number) => n.toString().padStart(2, '0');
-    const defaultDate = `${tomorrow.getFullYear()}-${pad(tomorrow.getMonth() + 1)}-${pad(tomorrow.getDate())}T${pad(tomorrow.getHours())}:${pad(tomorrow.getMinutes())}`;
-
+    const defaultDate = `${targetDate.getFullYear()}-${pad(targetDate.getMonth() + 1)}-${pad(targetDate.getDate())}T${pad(targetDate.getHours())}:${pad(targetDate.getMinutes())}`;
+    
     this.eventForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(200)]],
       description: ['', [Validators.required, Validators.minLength(20)]],
@@ -211,6 +221,47 @@ export class EventCreateComponent implements OnInit {
     this.showGeocodingResults = false;
   }
 
+  loadEventData(id: number): void {
+    this.loading = true;
+    this.eventService.getEventById(id).subscribe({
+      next: (event) => {
+        // A dátumot át kell alakítani a datetime-local input formátumára (YYYY-MM-DDTHH:mm)
+        const dateObj = new Date(event.start_date_time);
+        const pad = (n: number) => n.toString().padStart(2, '0');
+        const formattedDate = `${dateObj.getFullYear()}-${pad(dateObj.getMonth() + 1)}-${pad(dateObj.getDate())}T${pad(dateObj.getHours())}:${pad(dateObj.getMinutes())}`;
+
+        // A helyszín koordinátáit is eltároljuk a térképhez
+        this.selectedLocation = { lat: Number(event.latitude), lng: Number(event.longitude) };
+
+        this.eventForm.patchValue({
+          title: event.title,
+          description: event.description,
+          sport_type: event.sport_type,
+          start_date_time: formattedDate,
+          duration_minutes: event.duration_minutes,
+          location_name: event.location_name,
+          location_address: event.location_address,
+          latitude: Number(event.latitude),
+          longitude: Number(event.longitude),
+          max_participants: event.max_participants,
+          min_participants: event.min_participants,
+          difficulty: event.difficulty,
+          is_public: event.is_public,
+          requires_approval: event.requires_approval,
+          is_free: event.is_free,
+          price: event.price,
+          notes: event.notes
+        });
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Hiba az esemény betöltésekor', error);
+        alert('Nem sikerült betölteni a szerkesztendő eseményt.');
+        this.router.navigate(['/my-events']);
+      }
+    });
+  }
+
   onSubmit(): void {
     console.log('Submitting form...');
 
@@ -234,45 +285,53 @@ export class EventCreateComponent implements OnInit {
 
     console.log('Sending payload to backend:', JSON.stringify(formData, null, 2));
 
-    this.eventService.createEvent(formData).subscribe({
-      next: (event) => {
-        console.log('%cEvent created successfully:', 'color: green; font-weight: bold;', event);
-        
-        // Sikeres üzenet megjelenítése
-        alert('✅ Esemény sikeresen létrehozva!');
-        
-        // Átirányítás a saját események oldalra
-        this.router.navigate(['/my-events']);
-      },
-      error: (error) => {
-        console.error('%cBackend error response:', 'color: red; font-weight: bold;', error);
-
-        if (error.error) {
-          console.log('%cRaw backend error body:', 'color: orange;', error.error);
-
-          if (typeof error.error === 'string') {
-            this.errorMessage = error.error;
-          } else {
-            this.errors = error.error;
-            
-            // Emberbarát hibaösszegzés
-            this.errorMessage =
-              'Hiba az űrlapban:\n' +
-              Object.keys(error.error)
-                .map(key => `• ${key}: ${error.error[key]}`)
-                .join('\n');
-          }
-        } else {
-          this.errorMessage = 'Ismeretlen hiba történt.';
+    if (this.isEditMode && this.eventId) {
+      this.eventService.updateEvent(this.eventId, formData).subscribe({
+        next: () => {
+          alert('✅ Esemény sikeresen frissítve!');
+          this.router.navigate(['/events', this.eventId]); 
+        },
+        error: (error) => this.handleBackendError(error),
+        complete: () => {
+          this.loading = false;
         }
+      });
+    } else {
+      this.eventService.createEvent(formData).subscribe({
+        next: (event) => {
+          alert('✅ Esemény sikeresen létrehozva!');
+          this.router.navigate(['/my-events']);
+        },
+        error: (error) => this.handleBackendError(error),
+        complete: () => {
+          this.loading = false;
+        }
+      });
+    }
+  }
 
-        this.loading = false;
+  private handleBackendError(error: any): void {
+    console.error('%cBackend error response:', 'color: red; font-weight: bold;', error);
 
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      },
-      complete: () => {
-        this.loading = false;
+    if (error.error) {
+      console.log('%cRaw backend error body:', 'color: orange;', error.error);
+
+      if (typeof error.error === 'string') {
+        this.errorMessage = error.error;
+      } else {
+        this.errors = error.error;
+        
+        this.errorMessage =
+          'Hiba az űrlapban:\n' +
+          Object.keys(error.error)
+            .map(key => `• ${key}: ${error.error[key]}`)
+            .join('\n');
       }
-    });
+    } else {
+      this.errorMessage = 'Ismeretlen hiba történt.';
+    }
+
+    this.loading = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }

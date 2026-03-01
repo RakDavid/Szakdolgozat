@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.utils import timezone
+from datetime import timedelta
 from .models import SportEvent, EventParticipant, EventImage
 from accounts.serializers import UserSerializer, SportTypeSerializer
 from math import radians, sin, cos, sqrt, atan2
@@ -45,12 +46,11 @@ class SportEventListSerializer(serializers.ModelSerializer):
     creator_detail = UserSerializer(source='creator', read_only=True)
     primary_image = serializers.SerializerMethodField()
     participants_count = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
     is_full = serializers.ReadOnlyField()
     available_spots = serializers.ReadOnlyField()
     distance = serializers.SerializerMethodField()
     
-    # ÚJ: ezek None-t adnak vissza alapból,
-    # a RecommendedEventsView felülírja őket
     recommendation_score = serializers.FloatField(
         read_only=True,
         default=None
@@ -132,6 +132,21 @@ class SportEventListSerializer(serializers.ModelSerializer):
             return round(distance, 2)
         except (ValueError, TypeError):
             return None
+        
+    def get_status(self, obj):
+        if getattr(obj, 'status', None) == 'cancelled':
+            return 'cancelled'
+            
+        now = timezone.now()
+        duration = getattr(obj, 'duration_minutes', 60) or 60
+        end_time = obj.start_date_time + timedelta(minutes=duration)
+
+        if now < obj.start_date_time:
+            return 'upcoming'
+        elif obj.start_date_time <= now <= end_time:
+            return 'ongoing'
+        else:
+            return 'completed'
 
 
 class SportEventDetailSerializer(serializers.ModelSerializer):
@@ -142,6 +157,7 @@ class SportEventDetailSerializer(serializers.ModelSerializer):
     creator_detail = UserSerializer(source='creator', read_only=True)
     participants = EventParticipantSerializer(many=True, read_only=True)
     images = EventImageSerializer(many=True, read_only=True)
+    status = serializers.SerializerMethodField()
     is_full = serializers.ReadOnlyField()
     available_spots = serializers.ReadOnlyField()
     is_past = serializers.ReadOnlyField()
@@ -196,6 +212,21 @@ class SportEventDetailSerializer(serializers.ModelSerializer):
                     'can_cancel': participant.status in ['pending', 'confirmed']
                 }
         return None
+    
+    def get_status(self, obj):
+        if getattr(obj, 'status', None) == 'cancelled':
+            return 'cancelled'
+            
+        now = timezone.now()
+        duration = getattr(obj, 'duration_minutes', 60) or 60
+        end_time = obj.start_date_time + timedelta(minutes=duration)
+
+        if now < obj.start_date_time:
+            return 'upcoming'
+        elif obj.start_date_time <= now <= end_time:
+            return 'ongoing'
+        else:
+            return 'completed'
 
 
 class SportEventCreateSerializer(serializers.ModelSerializer):
@@ -232,8 +263,15 @@ class SportEventCreateSerializer(serializers.ModelSerializer):
         return value
     
     def validate(self, attrs):
-        """Összetett validációk"""
-        # End date validálás
+        """Összetett validációk és automatikus kalkulációk"""
+        
+        # Automatikus end_date_time kiszámítása a duration_minutes alapján
+        start = attrs.get('start_date_time')
+        duration = attrs.get('duration_minutes')
+        if start and duration and not attrs.get('end_date_time'):
+            attrs['end_date_time'] = start + timedelta(minutes=duration)
+
+        # End date validálás (ha manuálisan lett volna megadva)
         if attrs.get('end_date_time') and attrs.get('start_date_time'):
             if attrs['end_date_time'] <= attrs['start_date_time']:
                 raise serializers.ValidationError({
@@ -258,7 +296,35 @@ class SportEventCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Esemény létrehozása a bejelentkezett felhasználóval mint creator"""
         validated_data['creator'] = self.context['request'].user
-        return super().create(validated_data)
+        
+        event = super().create(validated_data)
+        
+        EventParticipant.objects.create(
+            event=event,
+            user=event.creator,
+            status='confirmed',
+            confirmed_at=timezone.now()
+        )
+        
+        return event
+    
+    def update(self, instance, validated_data):
+        """Esemény frissítése és résztvevők automatikus jóváhagyása, ha szükséges"""
+        old_requires_approval = instance.requires_approval
+
+        updated_instance = super().update(instance, validated_data)
+        
+        new_requires_approval = updated_instance.requires_approval
+        
+        if old_requires_approval and not new_requires_approval:
+            pending_participants = updated_instance.participants.filter(status='pending')
+            
+            for participant in pending_participants:
+                participant.status = 'confirmed'
+                participant.confirmed_at = timezone.now()
+                participant.save()
+                
+        return updated_instance
 
 
 class JoinEventSerializer(serializers.Serializer):
@@ -318,8 +384,10 @@ class EventRatingSerializer(serializers.ModelSerializer):
         fields = ['rating', 'feedback']
     
     def validate_rating(self, value):
-        """Értékelés csak befejezett eseményhez"""
+        """Értékelés csak befejezett vagy folyamatban lévő eseményhez"""
         participant = self.instance
-        if participant.event.status != 'completed':
-            raise serializers.ValidationError("Csak befejezett eseményt lehet értékelni.")
+        
+        if participant.event.status not in ['completed', 'ongoing']:
+            raise serializers.ValidationError("Csak folyamatban lévő vagy már befejezett eseményt lehet értékelni.")
+            
         return value

@@ -90,6 +90,7 @@
             {{ event.sport_type_detail?.name }}
           </div>
           <h3 class="event-title">{{ event.title }}</h3>
+          
           <div class="event-details">
             <div class="event-detail">
               <span class="detail-icon">📅</span>
@@ -104,15 +105,17 @@
               {{ event.location_name }}
             </div>
           </div>
+
+          <div class="recommendation-info" *ngIf="event.recommendation_score">
+            <span class="score-badge">
+              ⭐ {{ event.recommendation_score }} pont
+            </span>
+            <span *ngIf="event.distance" class="distance-badge">
+              📍 {{ event.distance }} km
+            </span>
+          </div>
+
           <div class="event-participants">
-            <div class="recommendation-info" *ngIf="event.recommendation_score">
-              <span class="score-badge">
-                ⭐ {{ event.recommendation_score }} pont
-              </span>
-              <span *ngIf="event.distance" class="distance-badge">
-                📍 {{ event.distance }} km
-              </span>
-            </div>
             <span class="participants-count">
               {{ event.participants_count }} / {{ event.max_participants }} résztvevő
             </span>
@@ -130,7 +133,7 @@
     </div>
 
     <div class="section-footer">
-      <button (click)="navigateToEvents()" class="btn btn-outline">
+      <button (click)="navigateToEvents()" class="btn btn-outline-primary">
         Összes esemény megtekintése
       </button>
     </div>

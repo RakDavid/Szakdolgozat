@@ -1,5 +1,4 @@
-<div class="event-detail-container" *ngIf="!loading && event">
-  <!-- Hero Image -->
+<div class="event-detail-container" *ngIf="!loading && event" [style.backgroundImage]="getDynamicBackground(event.sport_type_detail?.name)">
   <div class="event-hero" [style.background-image]="event.images && event.images.length > 0 ? 'url(' + event.images[0].image + ')' : 'none'">
     <div class="hero-overlay">
       <div class="hero-content">
@@ -17,7 +16,6 @@
     </div>
   </div>
 
-  <!-- Messages -->
   <div *ngIf="successMessage" class="alert alert-success">
     {{ successMessage }}
   </div>
@@ -25,11 +23,10 @@
     {{ errorMessage }}
   </div>
 
-  <!-- Main Content -->
   <div class="event-content">
-    <!-- Left Column -->
+    
     <div class="event-main">
-      <!-- Info Cards -->
+      
       <div class="info-cards">
         <div class="info-card">
           <div class="info-icon">📅</div>
@@ -45,7 +42,9 @@
           <div class="info-content">
             <div class="info-label">Helyszín</div>
             <div class="info-value">{{ event.location_name }}</div>
-            <div class="info-subvalue" *ngIf="event.location_address">{{ event.location_address }}</div>
+            <div class="info-subvalue" *ngIf="event.location_address" [title]="event.location_address">
+              {{ formatShortAddress(event.location_address) }}
+            </div>
           </div>
         </div>
 
@@ -69,19 +68,16 @@
         </div>
       </div>
 
-      <!-- Description -->
       <div class="section-card">
         <h2 class="section-title">Leírás</h2>
         <p class="event-description">{{ event.description }}</p>
       </div>
 
-      <!-- Additional Info -->
       <div class="section-card" *ngIf="event.notes">
         <h2 class="section-title">További információk</h2>
         <p class="event-notes">{{ event.notes }}</p>
       </div>
 
-      <!-- Map -->
       <div class="section-card">
         <h2 class="section-title">Térkép</h2>
         <app-map 
@@ -92,20 +88,24 @@
         ></app-map>
       </div>
 
-      <!-- Participants -->
       <div class="section-card">
         <h2 class="section-title">Résztvevők ({{ participants.length }})</h2>
         <div class="participants-list" *ngIf="participants.length > 0">
-          <div class="participant-item" *ngFor="let participant of participants">
+          <div class="participant-item" *ngFor="let participant of participants" style="cursor: pointer;" [routerLink]="['/users', participant.user]">
             <div class="participant-avatar">
               <img *ngIf="participant.user_detail?.profile_picture" [src]="participant.user_detail?.profile_picture" alt="Avatar" />
               <span *ngIf="!participant.user_detail?.profile_picture">
-                {{ participant.user_detail?.first_name?.charAt(0) }}{{ participant.user_detail?.last_name?.charAt(0) }}
+                {{ participant.user_detail?.last_name?.charAt(0) }}{{ participant.user_detail?.first_name?.charAt(0) }}
               </span>
             </div>
             <div class="participant-info">
-              <div class="participant-name">{{ participant.user_detail?.full_name }}</div>
-              <div class="participant-status" [class]="participant.status">
+              <div class="participant-name-row">
+                <span class="participant-name">{{ participant.user_detail?.full_name }}</span>
+                <span *ngIf="participant.user === event.creator" class="creator-badge-small">
+                  👑 Szervező
+                </span>
+              </div>
+              <div class="participant-status" [class]="participant.status" *ngIf="participant.status !== 'confirmed'">
                 {{ getParticipantStatusLabel(participant.status) }}
               </div>
             </div>
@@ -116,34 +116,15 @@
         </p>
       </div>
 
-      <!-- Creator Info -->
-      <div class="section-card">
-        <h2 class="section-title">Szervező</h2>
-        <div class="creator-info">
-          <div class="creator-avatar">
-            <img *ngIf="event.creator_detail?.profile_picture" [src]="event.creator_detail?.profile_picture" alt="Creator" />
-            <span *ngIf="!event.creator_detail?.profile_picture">
-              {{ event.creator_detail?.first_name?.charAt(0) }}{{ event.creator_detail?.last_name?.charAt(0) }}
-            </span>
-          </div>
-          <div class="creator-details">
-            <div class="creator-name">{{ event.creator_detail?.full_name }}</div>
-            <div class="creator-username">{{ '@' + event.creator_detail?.username }}</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Sidebar -->
+    </div> 
     <div class="event-sidebar">
-      <!-- Action Card -->
+      
       <div class="action-card">
-        <!-- Creator Actions -->
+        
         <div *ngIf="isCreator" class="creator-actions">
           <h3>Saját esemény</h3>
           <p class="action-description">Te hoztad létre ezt az eseményt</p>
           
-          <!-- Függőben lévő kérések -->
           <div *ngIf="pendingParticipants.length > 0" class="pending-section">
             <h4 class="pending-title">
               ⏳ Függőben lévő kérések ({{ pendingParticipants.length }})
@@ -155,7 +136,7 @@
                 <div *ngIf="p.notes" class="pending-notes">💬 "{{ p.notes }}"</div>
                 <div class="pending-time">{{ p.joined_at | date:'MMM d, HH:mm' }}</div>
               </div>
-              <div class="pending-actions">
+              <div class="pending-actions" *ngIf="!event.is_past">
                 <button class="btn btn-success btn-small" (click)="approveParticipant(p.id)">
                   ✓ Jóváhagyás
                 </button>
@@ -166,12 +147,11 @@
             </div>
           </div>
 
-          <div *ngIf="pendingParticipants.length === 0 && event.requires_approval" 
-              class="no-pending">
+          <div *ngIf="pendingParticipants.length === 0 && event.requires_approval" class="no-pending">
             Nincs függőben lévő kérés
           </div>
 
-          <div class="creator-btn-group">
+          <div class="creator-btn-group" *ngIf="!event.is_past">
             <button class="btn btn-outline btn-block" (click)="editEvent()">
               ✏️ Szerkesztés
             </button>
@@ -181,9 +161,41 @@
           </div>
         </div>
 
-        <!-- Join Actions -->
         <div *ngIf="!isCreator">
-          <!-- Not joined yet -->
+
+          <div class="rating-section" *ngIf="canRateEvent() && !ratingSuccess" style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 12px;">            
+            <h3 style="margin-bottom: 15px; font-size: 1.2rem;">Értékeld az eseményt!</h3>
+            <div *ngIf="ratingError" class="alert alert-error">{{ ratingError }}</div>
+
+            <div class="stars" style="font-size: 2rem; cursor: pointer; color: #ccc; margin-bottom: 15px;">
+              <span (click)="setRating(1)" [style.color]="ratingValue >= 1 ? '#FFD700' : '#ccc'">★</span>
+              <span (click)="setRating(2)" [style.color]="ratingValue >= 2 ? '#FFD700' : '#ccc'">★</span>
+              <span (click)="setRating(3)" [style.color]="ratingValue >= 3 ? '#FFD700' : '#ccc'">★</span>
+              <span (click)="setRating(4)" [style.color]="ratingValue >= 4 ? '#FFD700' : '#ccc'">★</span>
+              <span (click)="setRating(5)" [style.color]="ratingValue >= 5 ? '#FFD700' : '#ccc'">★</span>
+            </div>
+
+            <textarea 
+              [(ngModel)]="feedbackText" 
+              placeholder="Írj egy rövid szöveges értékelést (opcionális)..." 
+              class="form-control" 
+              rows="3" 
+              style="width: 100%; margin-bottom: 15px;">
+            </textarea>
+
+            <button 
+              class="btn btn-primary" 
+              (click)="submitRating()" 
+              [disabled]="ratingValue === 0 || isSubmittingRating">
+              <span *ngIf="!isSubmittingRating">⭐ Értékelés beküldése</span>
+              <span *ngIf="isSubmittingRating">Küldés...</span>
+            </button>
+          </div>
+
+          <div class="alert alert-success" *ngIf="ratingSuccess" style="margin-top: 30px;">
+            Köszönjük az értékelést!
+          </div>
+          
           <div *ngIf="canJoinEvent() && !showJoinForm">
             <h3>Csatlakozz!</h3>
             <p class="action-description">
@@ -194,7 +206,6 @@
             </button>
           </div>
 
-          <!-- Join Form -->
           <div *ngIf="showJoinForm" class="join-form">
             <h3>Jelentkezés</h3>
             <div class="form-group">
@@ -215,7 +226,6 @@
             </button>
           </div>
 
-          <!-- Already joined -->
           <div *ngIf="event.user_participation_status">
             <h3>Részt veszel</h3>
             <p class="action-description">
@@ -233,7 +243,6 @@
           </div>
         </div>
 
-        <!-- Event Details Summary -->
         <div class="details-summary">
           <div class="summary-item">
             <span class="summary-label">⏱️ Időtartam:</span>
@@ -248,18 +257,12 @@
             <span class="summary-value">{{ event.requires_approval ? 'Szükséges' : 'Automatikus' }}</span>
           </div>
         </div>
-      </div>
-
-      <!-- Back Button -->
-      <button class="btn btn-outline btn-block" routerLink="/events">
+      </div> <button class="btn btn-outline btn-block" routerLink="/events">
         ← Vissza az eseményekhez
       </button>
-    </div>
-  </div>
-</div>
 
-<!-- Loading -->
-<div *ngIf="loading" class="loading-container">
+    </div> 
+    </div> </div> <div *ngIf="loading" class="loading-container">
   <div class="spinner"></div>
   <p>Esemény betöltése...</p>
 </div>

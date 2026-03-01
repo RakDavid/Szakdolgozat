@@ -1,36 +1,58 @@
+# =========================
 # Python
+# =========================
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
 .Python
+
+# SQLite
 db.sqlite3
 *.sqlite3
 
+# =========================
 # Virtual Environment
+# =========================
 venv/
 env/
 ENV/
+.venv/
 backend/venv/
-frontend/node_modules/
 
-# Node
+# =========================
+# Node / Frontend
+# =========================
 node_modules/
+frontend/node_modules/
 build/
 dist/
-.env
-.env.local
 
+# =========================
+# Environment files (secret)
+# =========================
+.env
+.env.*
+*.env
+
+# =========================
+# Django
+# =========================
+media/
+
+# Migrations (except __init__.py)
+*/migrations/*.py
+!*/migrations/__init__.py
+
+# =========================
 # IDE
+# =========================
 .vscode/
 .idea/
 *.swp
 *.swo
 
+# =========================
 # OS
+# =========================
 .DS_Store
 Thumbs.db
-
-# Migrations 
-*/migrations/*.py
-!*/migrations/__init__.py

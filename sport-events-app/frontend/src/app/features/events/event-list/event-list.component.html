@@ -50,7 +50,6 @@
           <option value="">Összes</option>
           <option value="upcoming">Közelgő</option>
           <option value="ongoing">Folyamatban</option>
-          <option value="completed">Befejezett</option>
         </select>
       </div>
 
@@ -185,8 +184,13 @@
             ></app-map>
           </div>
           
-          <div class="event-badge" [class.free]="event.is_free">
-            {{ event.is_free ? 'Ingyenes' : (event.price + ' Ft') }}
+          <div class="card-top-right-badges">
+            <div class="event-badge" [class.free]="event.is_free">
+              {{ event.is_free ? 'Ingyenes' : (event.price + ' Ft') }}
+            </div>
+            <div class="badge-status-small" [class]="event.status">
+              {{ getStatusLabel(event.status) }}
+            </div>
           </div>
           <div *ngIf="event.distance" class="distance-badge">
             📍 {{ event.distance }} km

@@ -29,7 +29,7 @@ export class EventListComponent implements OnInit {
   filters: EventFilterParams = {
     search: '',
     sport_type: undefined,
-    status: 'upcoming',
+    status: '',
     difficulty: undefined,
     is_free: undefined,
     ordering: 'start_date_time'
@@ -177,6 +177,16 @@ export class EventListComponent implements OnInit {
       alert('A böngésződ nem támogatja a helymeghatározást.');
       this.useLocation = false;
     }
+  }
+
+  getStatusLabel(status: string): string {
+    const labels: { [key: string]: string } = {
+      'upcoming': 'Közelgő',
+      'ongoing': 'Folyamatban',
+      'completed': 'Befejezett',
+      'cancelled': 'Törölve'
+    };
+    return labels[status] || status;
   }
 
   getEventDate(dateString: string): string {

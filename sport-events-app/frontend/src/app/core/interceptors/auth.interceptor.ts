@@ -36,8 +36,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             })
           );
         } else {
-          authService.logout();
-          router.navigate(['/login']);
+          const currentUrl = router.url;
+          if (currentUrl !== '/' && currentUrl !== '') {
+            authService.logout();
+            router.navigate(['/login']);
+          }
         }
       }
       return throwError(() => error);

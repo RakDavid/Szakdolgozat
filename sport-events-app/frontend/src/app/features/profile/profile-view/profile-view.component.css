@@ -1,24 +1,25 @@
 .profile-container {
   min-height: 100vh;
-  background: #f4f7fa; /* Kicsit hidegebb, modernebb szürke */
+  background: #f4f7fa; 
   font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 /* Profile Header */
 .profile-header {
   background: white;
-  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.04); /* Lágyabb árnyék */
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.04); 
   padding-bottom: 20px;
 }
 
 .profile-banner {
-  height: 220px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  position: relative;
-  overflow: hidden;
+  height: 400px;
+  
+  background-size: cover;          
+  background-position: center 30%; 
+  background-repeat: no-repeat;    
+  transition: background-image 0.5s ease-in-out;
 }
 
-/* Egy kis minta a bannerre */
 .profile-banner::after {
   content: '';
   position: absolute;
@@ -33,9 +34,9 @@
   display: grid;
   grid-template-columns: auto 1fr auto;
   gap: 30px;
-  align-items: flex-end; /* Hogy a név a kép aljával legyen egy vonalban */
+  align-items: flex-end;
   position: relative;
-  margin-top: -70px; /* Jobban belóg a bannerbe */
+  margin-top: -70px;
 }
 
 .profile-avatar-wrapper {
@@ -55,7 +56,7 @@
   color: white;
   font-size: 54px;
   font-weight: 700;
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.35); /* Színes árnyék, ami prémium hatást kelt */
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.35);
 }
 
 .profile-avatar-img {
@@ -262,11 +263,10 @@
   height: 100%;
   background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
   border-radius: 5px;
-  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); /* Sima animáció betöltéskor */
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
 }
 
-/* Egy kis extra csillogás a csíknak */
 .interest-fill::after {
   content: '';
   position: absolute;
@@ -326,6 +326,133 @@
   font-size: 14px;
   color: #718096;
   font-weight: 500;
+}
+
+/* Clickable Stat Items */
+.stat-item.clickable {
+  cursor: pointer;
+}
+
+.stat-item.active {
+  border-color: #667eea;
+  background: #f8faff;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
+}
+
+/* Dropdown Lists */
+.stats-dropdown {
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 2px dashed #edf2f7;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #718096;
+  padding: 20px;
+}
+
+.spinner.small {
+  width: 20px;
+  height: 20px;
+  border-width: 3px;
+}
+
+.dropdown-title {
+  font-size: 16px;
+  color: #4a5568;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.dropdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+/* Scrollbar stílus a listához */
+.dropdown-list::-webkit-scrollbar {
+  width: 6px;
+}
+.dropdown-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+.dropdown-list::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 10px;
+}
+
+.dropdown-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.dropdown-item:hover {
+  background: #fff;
+  border-color: #667eea;
+  box-shadow: 0 4px 10px rgba(102, 126, 234, 0.1);
+  transform: translateX(4px);
+}
+
+.dropdown-event-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dropdown-event-date {
+  font-size: 12px;
+  color: #718096;
+  font-weight: 600;
+}
+
+.dropdown-event-title {
+  font-size: 15px;
+  color: #2d3748;
+  font-weight: 700;
+}
+
+.dropdown-event-status {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.dropdown-event-status.upcoming { background: #e3f2fd; color: #1976d2; }
+.dropdown-event-status.ongoing { background: #e8f5e9; color: #2e7d32; }
+.dropdown-event-status.completed { background: #f5f5f5; color: #616161; }
+.dropdown-event-status.cancelled { background: #ffebee; color: #c62828; }
+
+.dropdown-empty {
+  text-align: center;
+  padding: 20px;
+  color: #a0aec0;
+  font-style: italic;
+  background: #f8fafc;
+  border-radius: 10px;
 }
 
 /* Sidebar */
@@ -460,6 +587,38 @@
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.section-header-with-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.section-header-with-action .section-title {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.btn-icon-edit {
+  background: transparent;
+  border: 1px solid #e0e0e0;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #667eea;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-icon-edit:hover {
+  background: #f0f3ff;
+  border-color: #667eea;
 }
 
 /* Loading */

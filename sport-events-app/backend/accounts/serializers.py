@@ -130,6 +130,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             'bio',
             'profile_picture',
             'phone_number',
+            'email',
             'default_latitude',
             'default_longitude',
             'default_location_name',
@@ -216,8 +217,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
     
     def get_created_events_count(self, obj):
         """Létrehozott események száma"""
-        return obj.created_events.filter(status__in=['upcoming', 'ongoing']).count()
+        return obj.created_events.count()
     
     def get_participated_events_count(self, obj):
         """Részvett események száma"""
-        return obj.event_participations.filter(status='confirmed').count()
+        return obj.event_participations.filter(status__in=['pending', 'confirmed']).count()

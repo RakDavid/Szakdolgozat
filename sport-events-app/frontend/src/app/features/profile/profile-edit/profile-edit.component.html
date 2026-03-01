@@ -4,7 +4,18 @@
     <p>Frissítsd az adataidat és a beállításaidat</p>
   </div>
 
-  <!-- Messages -->
+  <div class="edit-tabs" *ngIf="!loading">
+    <button class="tab-btn" [class.active]="activeTab === 'personal'" (click)="setTab('personal')">
+      Személyes adatok
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'preferences'" (click)="setTab('preferences')">
+      Sportág preferenciák
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'password'" (click)="setTab('password')">
+      Jelszó módosítása
+    </button>
+  </div>
+
   <div *ngIf="successMessage" class="alert alert-success">
     {{ successMessage }}
   </div>
@@ -12,9 +23,8 @@
     {{ errorMessage }}
   </div>
 
-  <!-- Form -->
-  <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="edit-form" *ngIf="!loading">
-    <!-- Profile Picture Section -->
+  <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="edit-form" *ngIf="!loading && activeTab === 'personal'">
+    
     <div class="form-section">
       <h2 class="section-title">Profilkép</h2>
       
@@ -44,26 +54,10 @@
       </div>
     </div>
 
-    <!-- Basic Info Section -->
     <div class="form-section">
       <h2 class="section-title">Alapadatok</h2>
 
       <div class="form-row">
-        <div class="form-group">
-          <label for="first_name">Keresztnév *</label>
-          <input
-            type="text"
-            id="first_name"
-            formControlName="first_name"
-            class="form-control"
-            [class.is-invalid]="f['first_name'].invalid && f['first_name'].touched"
-          />
-          <div *ngIf="f['first_name'].invalid && f['first_name'].touched" class="invalid-feedback">
-            <span *ngIf="f['first_name'].errors?.['required']">A keresztnév kötelező.</span>
-            <span *ngIf="f['first_name'].errors?.['minlength']">Minimum 2 karakter.</span>
-          </div>
-        </div>
-
         <div class="form-group">
           <label for="last_name">Vezetéknév *</label>
           <input
@@ -76,6 +70,21 @@
           <div *ngIf="f['last_name'].invalid && f['last_name'].touched" class="invalid-feedback">
             <span *ngIf="f['last_name'].errors?.['required']">A vezetéknév kötelező.</span>
             <span *ngIf="f['last_name'].errors?.['minlength']">Minimum 2 karakter.</span>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="first_name">Keresztnév *</label>
+          <input
+            type="text"
+            id="first_name"
+            formControlName="first_name"
+            class="form-control"
+            [class.is-invalid]="f['first_name'].invalid && f['first_name'].touched"
+          />
+          <div *ngIf="f['first_name'].invalid && f['first_name'].touched" class="invalid-feedback">
+            <span *ngIf="f['first_name'].errors?.['required']">A keresztnév kötelező.</span>
+            <span *ngIf="f['first_name'].errors?.['minlength']">Minimum 2 karakter.</span>
           </div>
         </div>
       </div>
@@ -106,9 +115,23 @@
           placeholder="+36 30 123 4567"
         />
       </div>
+
+      <div class="form-group">
+        <label for="email">E-mail cím *</label>
+        <input
+          type="email"
+          id="email"
+          formControlName="email"
+          class="form-control"
+          [class.is-invalid]="f['email'].invalid && f['email'].touched"
+        />
+        <div *ngIf="f['email'].invalid && f['email'].touched" class="invalid-feedback">
+          <span *ngIf="f['email'].errors?.['required']">Az e-mail cím megadása kötelező.</span>
+          <span *ngIf="f['email'].errors?.['email']">Kérlek, egy érvényes e-mail címet adj meg!</span>
+        </div>
+      </div>
     </div>
 
-    <!-- Location Section -->
     <div class="form-section">
       <h2 class="section-title">Alapértelmezett helyszín</h2>
 
@@ -174,26 +197,75 @@
       </div>
     </div>
 
-    <!-- Submit Buttons -->
     <div class="form-actions">
       <button type="submit" class="btn btn-primary btn-large" [disabled]="saving || profileForm.invalid">
         <span *ngIf="!saving">💾 Mentés</span>
         <span *ngIf="saving">Mentés...</span>
       </button>
       <button type="button" class="btn btn-outline btn-large" routerLink="/profile" [disabled]="saving">
-        Mégse
+        ← Vissza a profilra
       </button>
     </div>
   </form>
 
-  <!-- Loading -->
+
+  <div *ngIf="!loading && activeTab === 'preferences'">
+    <app-sport-preferences></app-sport-preferences>
+  </div>
+
+  <form [formGroup]="passwordForm" (ngSubmit)="onPasswordSubmit()" class="edit-form" *ngIf="!loading && activeTab === 'password'">
+    
+    <div class="form-section">
+      <h2 class="section-title">Jelszó megváltoztatása</h2>
+
+      <div *ngIf="passwordSuccessMessage" class="alert alert-success">{{ passwordSuccessMessage }}</div>
+      <div *ngIf="passwordErrorMessage" class="alert alert-error">{{ passwordErrorMessage }}</div>
+
+      <div class="form-group">
+        <label for="old_password">Jelenlegi jelszó *</label>
+        <input type="password" id="old_password" formControlName="old_password" class="form-control" 
+               [class.is-invalid]="p['old_password'].invalid && p['old_password'].touched" />
+        <div *ngIf="p['old_password'].invalid && p['old_password'].touched" class="invalid-feedback">
+          A jelenlegi jelszó megadása kötelező.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="new_password">Új jelszó *</label>
+        <input type="password" id="new_password" formControlName="new_password" class="form-control" 
+               [class.is-invalid]="p['new_password'].invalid && p['new_password'].touched" />
+        <div *ngIf="p['new_password'].invalid && p['new_password'].touched" class="invalid-feedback">
+          <span *ngIf="p['new_password'].errors?.['required']">Az új jelszó kötelező.</span>
+          <span *ngIf="p['new_password'].errors?.['minlength']">Az új jelszónak legalább 8 karakternek kell lennie.</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="confirm_password">Új jelszó megerősítése *</label>
+        <input type="password" id="confirm_password" formControlName="confirm_password" class="form-control" 
+               [class.is-invalid]="(p['confirm_password'].touched && p['confirm_password'].invalid) || passwordForm.errors?.['mismatch']" />
+        <div *ngIf="p['confirm_password'].touched" class="invalid-feedback">
+          <span *ngIf="p['confirm_password'].errors?.['required']">A jelszó megerősítése kötelező.</span>
+          <span *ngIf="passwordForm.errors?.['mismatch'] && !p['confirm_password'].errors?.['required']">A két új jelszó nem egyezik!</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary btn-large" [disabled]="passwordSaving || passwordForm.invalid">
+        <span *ngIf="!passwordSaving">🔒 Jelszó cseréje</span>
+        <span *ngIf="passwordSaving">Feldolgozás...</span>
+      </button>
+      <button type="button" class="btn btn-outline btn-large" routerLink="/profile" [disabled]="passwordSaving">
+        ← Vissza a profilra
+      </button>
+    </div>
+  </form>
+
   <div *ngIf="loading" class="loading-container">
     <div class="spinner"></div>
     <p>Profil betöltése...</p>
   </div>
 
-  <!-- ✅ Sport Preferences — külön szekció a form ALATT, önállóan kezeli a mentést -->
-  <div class="form-section" style="margin-top: 30px;" *ngIf="!loading">
-    <app-sport-preferences></app-sport-preferences>
-  </div>
 </div>

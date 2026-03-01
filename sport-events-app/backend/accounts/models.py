@@ -9,7 +9,6 @@ class User(AbstractUser):
     Kiterjeszti a Django alapértelmezett User modelljét.
     """
     
-    # Profil információk
     bio = models.TextField(
         max_length=500, 
         blank=True, 
@@ -31,7 +30,6 @@ class User(AbstractUser):
         verbose_name="Telefonszám"
     )
     
-    # Lokáció információk (alapértelmezett helyzet)
     default_latitude = models.DecimalField(
         max_digits=9, 
         decimal_places=6, 
@@ -57,7 +55,6 @@ class User(AbstractUser):
         verbose_name="Alapértelmezett helyszín neve"
     )
     
-    # Keresési preferenciák
     default_search_radius = models.IntegerField(
         default=10,
         validators=[MinValueValidator(1), MaxValueValidator(100)],
@@ -65,7 +62,6 @@ class User(AbstractUser):
         help_text="Hány km-es körzetben keressen eseményeket"
     )
     
-    # Dátumok
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Létrehozva")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Frissítve")
     
@@ -80,7 +76,7 @@ class User(AbstractUser):
     @property
     def full_name(self):
         """Teljes név visszaadása"""
-        return f"{self.first_name} {self.last_name}".strip() or self.username
+        return f"{self.last_name} {self.first_name}".strip() or self.username
 
 
 class SportType(models.Model):

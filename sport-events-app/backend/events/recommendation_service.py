@@ -40,23 +40,19 @@ def get_participation_history_scores(user):
         if participation.status == 'confirmed':
             sport_scores[sport_id] += 3.0
             sport_counts[sport_id] += 1
-            # Ha értékelte is az eseményt, az jelzi hogy aktívan részt vett
             if participation.rating is not None:
                 sport_scores[sport_id] += 2.0
-                # Magas értékelés = még jobban szerette
                 if participation.rating >= 4:
                     sport_scores[sport_id] += 1.0
         elif participation.status == 'cancelled':
             sport_scores[sport_id] -= 1.0
 
-    # Normalizálás: max 10 pont lehet a history score
-    # (hogy ne nyomja el a többi faktort)
+
     normalized = {}
     for sport_id, score in sport_scores.items():
         count = sport_counts.get(sport_id, 1)
-        # Átlag + aktivitás bónusz, max 10-re korlátozzuk
         avg_score = score / max(count, 1)
-        activity_bonus = min(count * 0.5, 3.0)  # max +3 aktivitásért
+        activity_bonus = min(count * 0.5, 3.0)
         normalized[sport_id] = min(avg_score + activity_bonus, 10.0)
 
     return normalized
@@ -78,12 +74,9 @@ def get_recommended_events(user, max_results=20):
     preferences = list(user.sport_preferences.select_related('sport_type').all())
     history_scores = get_participation_history_scores(user)
 
-    # Összegyűjtjük az összes releváns sportág ID-t
-    # (preferenciából ÉS history-ból is)
     pref_map = {pref.sport_type_id: pref for pref in preferences}
     preferred_sport_ids = list(pref_map.keys())
 
-    # History-ban szereplő sportágak, amik nincsenek a preferenciákban
     history_only_sport_ids = [
         sport_id for sport_id in history_scores.keys()
         if sport_id not in pref_map
@@ -91,7 +84,6 @@ def get_recommended_events(user, max_results=20):
 
     all_relevant_sport_ids = preferred_sport_ids + history_only_sport_ids
 
-    # Ha sem preferencia, sem history nincs: közelgő események
     if not all_relevant_sport_ids:
         events = SportEvent.objects.filter(
             status='upcoming',
@@ -108,13 +100,11 @@ def get_recommended_events(user, max_results=20):
 
         return [(event, 0, None) for event in events[:max_results]]
 
-    # Már jelentkezett esemény ID-k (ne ajánlja újra)
     already_joined = set(
         EventParticipant.objects.filter(user=user)
         .values_list('event_id', flat=True)
     )
 
-    # Alap queryset
     events = SportEvent.objects.filter(
         sport_type_id__in=all_relevant_sport_ids,
         status='upcoming',
@@ -131,10 +121,10 @@ def get_recommended_events(user, max_results=20):
         confirmed_count__lt=F('max_participants')
     ).select_related('sport_type', 'creator').prefetch_related('images', 'participants')
 
-    # Felhasználó alapértelmezett helyzete
+
     user_lat = float(user.default_latitude) if user.default_latitude else None
     user_lng = float(user.default_longitude) if user.default_longitude else None
-    max_radius = user.default_search_radius or 50  # km, ha nincs beállítva
+    max_radius = user.default_search_radius or 50 
 
     scored = []
 
@@ -143,32 +133,24 @@ def get_recommended_events(user, max_results=20):
         pref = pref_map.get(event.sport_type_id)
         history_score = history_scores.get(event.sport_type_id, 0)
 
-        # 1. Preferencia pontszám (interest_level: 1–10)
         if pref:
             score += pref.interest_level
 
-            # 2. Skill level egyezés (0–3 pont)
             score += _skill_match_score(pref.skill_level, event.difficulty)
 
-        # 3. Participation history pontszám (0–10 pont)
-        # Ez akkor is számít, ha nincs explicit preferencia beállítva
         score += history_score
 
-        # 4. Távolság alapú pontszám (0–5 pont)
         distance = None
         if user_lat and user_lng:
             distance = haversine(
                 user_lat, user_lng,
                 float(event.latitude), float(event.longitude)
             )
-            # Sugáron kívüli eseményeket kihagyjuk
             if distance > max_radius:
                 continue
-            # Közelebb = több pont (lineáris)
             distance_score = max(0.0, 5.0 * (1 - distance / max_radius))
             score += distance_score
 
-        # 5. Teltségi szint – sürgősség bónusz (0–2 pont)
         if event.max_participants > 0:
             fill_ratio = event.confirmed_count / event.max_participants
             if fill_ratio >= 0.8:
@@ -182,7 +164,6 @@ def get_recommended_events(user, max_results=20):
             round(distance, 1) if distance is not None else None
         ))
 
-    # Rendezés pontszám szerint csökkenően
     scored.sort(key=lambda x: x[1], reverse=True)
 
     return scored[:max_results]

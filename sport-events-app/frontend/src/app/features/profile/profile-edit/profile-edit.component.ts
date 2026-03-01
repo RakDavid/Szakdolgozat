@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { UserService } from '../../../core/services/user.service';
 import { SportTypeService } from '../../../core/services/sport-type.service';
 import { User, UserUpdate, SportType, UserSportPreference, CreateUserSportPreference } from '../../../core/models/models';
@@ -29,6 +29,7 @@ export class ProfileEditComponent implements OnInit {
   saving = false;
   errorMessage = '';
   successMessage = '';
+  activeTab: 'personal' | 'preferences' | 'password' = 'personal';
 
   searchingLocation = false;
   geocodingResults: GeocodingResult[] = [];
@@ -36,18 +37,35 @@ export class ProfileEditComponent implements OnInit {
   selectedFile: File | null = null;
   imagePreview: string | null = null;
 
+  passwordForm!: FormGroup;
+  passwordSaving = false;
+  passwordSuccessMessage = '';
+  passwordErrorMessage = '';
+
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
     private sportTypeService: SportTypeService,
     private router: Router,
-    private geocodingService: GeocodingService
+    private geocodingService: GeocodingService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
     this.loadSportTypes();
     this.loadUserProfile();
     this.initForm();
+    this.initPasswordForm();
+
+    this.route.queryParams.subscribe(params => {
+      if (params['tab'] === 'preferences') this.activeTab = 'preferences';
+      else if (params['tab'] === 'password') this.activeTab = 'password';
+      else this.activeTab = 'personal';
+    });
+  }
+
+  setTab(tab: 'personal' | 'preferences' | 'password'): void {
+    this.activeTab = tab;
   }
 
   loadSportTypes(): void {
@@ -93,6 +111,7 @@ export class ProfileEditComponent implements OnInit {
       last_name: ['', [Validators.required, Validators.minLength(2)]],
       bio: ['', Validators.maxLength(500)],
       phone_number: [''],
+      email: ['', [Validators.required, Validators.email]],
       default_location_name: [''],
       default_latitude: [null],
       default_longitude: [null],
@@ -107,6 +126,7 @@ export class ProfileEditComponent implements OnInit {
         last_name: this.user.last_name,
         bio: this.user.bio,
         phone_number: this.user.phone_number,
+        email: this.user.email,
         default_location_name: this.user.default_location_name,
         default_latitude: this.user.default_latitude,
         default_longitude: this.user.default_longitude,
@@ -140,7 +160,6 @@ export class ProfileEditComponent implements OnInit {
 
   getCurrentLocation(): void {
     if (navigator.geolocation) {
-      // Opcionális: mutathatsz egy töltő képernyőt vagy szöveget
       this.profileForm.patchValue({ default_location_name: 'Helyzet meghatározása...' });
       
       navigator.geolocation.getCurrentPosition(
@@ -148,29 +167,22 @@ export class ProfileEditComponent implements OnInit {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
 
-          // 1. Koordináták mentése a háttérben
           this.profileForm.patchValue({
             default_latitude: lat,
             default_longitude: lng
           });
 
-          // 2. Cím lekérése a koordináták alapján (Reverse Geocoding)
           this.geocodingService.reverseGeocode(lat, lng).subscribe({
             next: (address) => {
-              // A teljes címet feldaraboljuk a vesszőknél
               const addressParts = address.split(',');
               
-              // Kivesszük az első 3 részt (Utca, Házszám, Város), és újra összekötjük őket
-              // Ha nincs 3 rész (pl. csak egy falu neve van meg), akkor annyit köt össze, amennyi van.
               const detailedAddress = addressParts.slice(0, 3).join(',').trim() || 'Saját helyzet';
               
-              // Beírjuk a látható mezőbe a részletesebb címet
               this.profileForm.patchValue({
                 default_location_name: detailedAddress
               });
             },
             error: () => {
-              // Ha nem sikerül a fordítás, adjunk neki egy szép alapnevet
               this.profileForm.patchValue({ 
                 default_location_name: 'Saját helyzet' 
               });
@@ -216,7 +228,6 @@ export class ProfileEditComponent implements OnInit {
   }
 
   selectGeocodingResult(result: GeocodingResult): void {
-    // Itt is alkalmazzuk a "szépítést", hogy csak az utca, házszám, város maradjon
     const detailedAddress = result.display_name.split(',').slice(0, 3).join(',').trim();
 
     this.profileForm.patchValue({
@@ -245,10 +256,8 @@ export class ProfileEditComponent implements OnInit {
     this.errorMessage = '';
     this.successMessage = '';
 
-    // 1. Készítünk egy másolatot az űrlap adatairól
     const formData: any = { ...this.profileForm.value };
     
-    // 2. Tizedesjegyek kerekítése (max 6) és null értékek eltávolítása
     if (formData.default_latitude === null || formData.default_latitude === '') {
       delete formData.default_latitude;
     } else {
@@ -261,30 +270,24 @@ export class ProfileEditComponent implements OnInit {
       formData.default_longitude = parseFloat(formData.default_longitude).toFixed(6);
     }
 
-    // Üres location name törlése (opcionális, de biztonságosabb)
     if (formData.default_location_name === '') {
       delete formData.default_location_name;
     }
     
-    // 3. Kép hozzáadása
     if (this.selectedFile) {
       formData.profile_picture = this.selectedFile;
     }
 
-    // 4. Küldés a szervernek
     this.userService.updateUserProfile(formData).subscribe({
       next: (user) => {
         this.successMessage = 'Profil sikeresen frissítve!';
         this.saving = false;
         
-        setTimeout(() => {
-          this.router.navigate(['/profile']);
-        }, 1500);
+        this.router.navigate(['/profile']);
       },
       error: (error) => {
         console.error('Error updating profile', error);
         
-        // KIÍRJUK A PONTOS HIBÁT A KONZOLRA:
         if (error.error) {
           console.error('Django hiba részletei:', error.error);
         }
@@ -292,6 +295,56 @@ export class ProfileEditComponent implements OnInit {
         this.errorMessage = 'Profil frissítése sikertelen. Próbáld újra!';
         this.saving = false;
         window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  }
+
+  initPasswordForm(): void {
+    this.passwordForm = this.fb.group({
+      old_password: ['', Validators.required],
+      new_password: ['', [Validators.required, Validators.minLength(8)]],
+      confirm_password: ['', Validators.required]
+    }, { validators: this.passwordMatchValidator });
+  }
+
+  passwordMatchValidator(g: FormGroup) {
+    return g.get('new_password')?.value === g.get('confirm_password')?.value
+      ? null : { mismatch: true };
+  }
+
+  get p() {
+    return this.passwordForm.controls;
+  }
+
+ onPasswordSubmit(): void {
+    if (this.passwordForm.invalid) {
+      Object.keys(this.passwordForm.controls).forEach(key => {
+        this.passwordForm.get(key)?.markAsTouched();
+      });
+      return;
+    }
+
+    this.passwordSaving = true;
+    this.passwordErrorMessage = '';
+    this.passwordSuccessMessage = '';
+
+    const payload = {
+      old_password: this.passwordForm.value.old_password,
+      new_password: this.passwordForm.value.new_password,
+      new_password2: this.passwordForm.value.confirm_password 
+    };
+
+    this.userService.changePassword(payload).subscribe({
+      next: () => {
+        this.passwordSaving = false;
+        this.passwordForm.reset(); 
+        this.router.navigate(['/profile']);
+      },
+      error: (error) => {
+        this.passwordSaving = false;
+        this.passwordErrorMessage = error.error?.old_password 
+          ? 'A megadott jelenlegi jelszó helytelen!' 
+          : 'Hiba történt';
       }
     });
   }

@@ -6,6 +6,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from django.db.models import Q, Count, F
 from django.db import models
+from datetime import timedelta
 from math import radians, sin, cos, sqrt, atan2
 from .models import SportEvent, EventParticipant, EventImage
 from notifications.services import notify_join_request, notify_participant_status_change
@@ -47,9 +48,9 @@ class SportEventListCreateView(generics.ListCreateAPIView):
     - user_lat, user_lng, radius: távolság alapú szűrés
     - start_date_from, start_date_to: időpont szűrés
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['sport_type', 'status', 'difficulty', 'is_free', 'creator']
+    filterset_fields = ['sport_type', 'difficulty', 'is_free', 'creator']
     search_fields = ['title', 'description', 'location_name', 'location_address']
     ordering_fields = ['start_date_time', 'created_at', 'max_participants']
     ordering = ['start_date_time']
@@ -60,15 +61,29 @@ class SportEventListCreateView(generics.ListCreateAPIView):
         return SportEventListSerializer
     
     def get_queryset(self):
-        # Csak a jövőbeli vagy mai események (régi események kiszűrése)
-        queryset = SportEvent.objects.filter(
-            is_public=True,
-            start_date_time__gte=timezone.now()
-        ).select_related(
+        queryset = SportEvent.objects.filter(is_public=True).select_related(
             'sport_type', 'creator'
         ).prefetch_related('images', 'participants')
         
-        # Időpont szűrés
+        status_param = self.request.query_params.get('status')
+        now = timezone.now()
+        
+        if status_param == 'upcoming':
+            queryset = queryset.filter(start_date_time__gt=now)
+            
+        elif status_param == 'ongoing':
+            queryset = queryset.filter(
+                Q(start_date_time__lte=now) & 
+                (Q(end_date_time__gt=now) | Q(end_date_time__isnull=True, start_date_time__gt=now - timedelta(hours=3)))
+            )
+            
+        elif not status_param:
+            queryset = queryset.filter(
+                Q(start_date_time__gt=now) | 
+                (Q(start_date_time__lte=now) & Q(end_date_time__gt=now)) |
+                (Q(start_date_time__lte=now) & Q(end_date_time__isnull=True, start_date_time__gt=now - timedelta(hours=3)))
+            )
+        
         start_date_from = self.request.query_params.get('start_date_from')
         start_date_to = self.request.query_params.get('start_date_to')
         
@@ -77,10 +92,9 @@ class SportEventListCreateView(generics.ListCreateAPIView):
         if start_date_to:
             queryset = queryset.filter(start_date_time__lte=start_date_to)
         
-        # Távolság alapú szűrés
         user_lat = self.request.query_params.get('user_lat')
         user_lng = self.request.query_params.get('user_lng')
-        radius = self.request.query_params.get('radius', 10)  # alapértelmezett 10 km
+        radius = self.request.query_params.get('radius', 10) 
         
         if user_lat and user_lng:
             try:
@@ -88,7 +102,6 @@ class SportEventListCreateView(generics.ListCreateAPIView):
                 user_lng = float(user_lng)
                 radius = float(radius)
                 
-                # Távolság számítás minden eseményhez
                 filtered_events = []
                 for event in queryset:
                     distance = self.calculate_distance(
@@ -108,7 +121,7 @@ class SportEventListCreateView(generics.ListCreateAPIView):
         """
         Haversine formula - távolság számítás két koordináta között (km-ben)
         """
-        R = 6371  # Föld sugara kilométerben
+        R = 6371 
         
         lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
         
@@ -151,7 +164,6 @@ class MyEventsView(generics.ListAPIView):
     def get_queryset(self):
         return SportEvent.objects.filter(
             creator=self.request.user,
-            start_date_time__gte=timezone.now()
         ).select_related('sport_type', 'creator').prefetch_related('images', 'participants')
 
 
@@ -164,7 +176,6 @@ class MyParticipationsView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        # Események, amikben résztvevő vagyok
         participated_event_ids = EventParticipant.objects.filter(
             user=self.request.user,
             status__in=['pending', 'confirmed']
@@ -172,7 +183,6 @@ class MyParticipationsView(generics.ListAPIView):
         
         return SportEvent.objects.filter(
             id__in=participated_event_ids,
-            start_date_time__gte=timezone.now()
         ).select_related('sport_type', 'creator').prefetch_related('images', 'participants')
 
 
@@ -202,7 +212,6 @@ class JoinEventView(APIView):
                 notes=serializer.validated_data.get('notes', '')
             )
 
-            # ÚJ: értesítés küldése jóváhagyásos eseménynél
             if event.requires_approval:
                 notify_join_request(
                     event=event,
@@ -241,7 +250,6 @@ class LeaveEventView(APIView):
                 'error': 'Nem vagy résztvevője ennek az eseménynek.'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Csak pending vagy confirmed státusz esetén lehet lemondani
         if participant.status not in ['pending', 'confirmed']:
             return Response({
                 'error': 'Már nem mondhatod le a részvételt.'
@@ -265,8 +273,20 @@ class EventParticipantsView(generics.ListAPIView):
     
     def get_queryset(self):
         event_id = self.kwargs['pk']
+        
+        try:
+            event = SportEvent.objects.get(id=event_id)
+        except SportEvent.DoesNotExist:
+            return EventParticipant.objects.none()
+            
+        if self.request.user == event.creator:
+            return EventParticipant.objects.filter(
+                event_id=event_id
+            ).select_related('user', 'event')
+            
         return EventParticipant.objects.filter(
-            event_id=event_id
+            event_id=event_id,
+            status='confirmed'
         ).select_related('user', 'event')
 
 
@@ -289,7 +309,6 @@ class ManageParticipantView(generics.UpdateAPIView):
     
     def perform_update(self, serializer):
         participant = serializer.save()
-        # ÚJ: értesítés küldése a résztvevőnek
         if participant.status in ['confirmed', 'rejected']:
             notify_participant_status_change(
                 event=participant.event,
@@ -355,7 +374,6 @@ class RecommendedEventsView(generics.ListAPIView):
 
         serializer = self.get_serializer(events, many=True)
         
-        # Score és distance adatok hozzáfűzése a response-hoz
         data = serializer.data
         for i, (event, score, distance) in enumerate(scored_events):
             data[i]['recommendation_score'] = score
