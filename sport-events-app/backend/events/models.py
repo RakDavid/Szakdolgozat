@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from accounts.models import User, SportType
 
@@ -251,7 +251,7 @@ class EventParticipant(models.Model):
     rating = models.IntegerField(
         blank=True,
         null=True,
-        validators=[MinValueValidator(1), MinValueValidator(5)],
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
         verbose_name="Értékelés",
         help_text="Esemény értékelése 1-5 csillag"
     )

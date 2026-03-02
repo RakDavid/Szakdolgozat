@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from .models import User, SportType, UserSportPreference
+from events.models import EventParticipant
 
 
 class SportTypeSerializer(serializers.ModelSerializer):
@@ -38,6 +39,7 @@ class UserSerializer(serializers.ModelSerializer):
     Felhasználó serializer (alap adatok)
     """
     full_name = serializers.ReadOnlyField()
+    organizer_rating = serializers.SerializerMethodField()
     sport_preferences = UserSportPreferenceSerializer(many=True, read_only=True)
     
     class Meta:
@@ -59,9 +61,21 @@ class UserSerializer(serializers.ModelSerializer):
             'sport_preferences',
             'date_joined',
             'created_at',
-            'updated_at'
+            'updated_at',
+            'organizer_rating'
         ]
         read_only_fields = ['id', 'date_joined', 'created_at', 'updated_at', 'full_name']
+
+    def get_organizer_rating(self, obj):
+        ratings = EventParticipant.objects.filter(
+            event__creator=obj,
+            status='confirmed',
+            rating__isnull=False
+        ).values_list('rating', flat=True)
+        
+        if ratings:
+            return round(sum(ratings) / len(ratings), 1)
+        return None
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):

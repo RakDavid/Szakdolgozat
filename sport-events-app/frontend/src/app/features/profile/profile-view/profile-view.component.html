@@ -46,7 +46,7 @@
           Még nincs bemutatkozás. Szerkeszd a profilod és adj hozzá egy bemutatkozást!
         </div>
       </div>
-
+      
       <!-- Sport Preferences -->
       <div class="section-card">
         <div class="section-header-with-action">
@@ -142,6 +142,26 @@
 
     <!-- Sidebar -->
     <div class="profile-sidebar">
+
+       <div class="organizer-rating-section" *ngIf="user.organizer_rating">
+        <h4 class="rating-title">Szervezői megbízhatóság</h4>
+        
+        <div class="rating-card">
+          <div class="score-display">
+            <span class="score-big">{{ user.organizer_rating }}</span>
+            <span class="score-max">/ 5</span>
+          </div>
+          
+          <div class="stars-display">
+            <span class="star" *ngFor="let i of [1,2,3,4,5]" 
+                  [class.active]="i <= (user.organizer_rating || 0)">★</span>
+          </div>
+          
+          <div class="rating-text">
+            <small>A résztvevők visszajelzései alapján</small>
+          </div>
+        </div>
+      </div>
       <!-- Contact Info -->
       <div class="sidebar-card">
         <h3 class="sidebar-title">Elérhetőség</h3>

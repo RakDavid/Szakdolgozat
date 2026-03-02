@@ -83,7 +83,7 @@ class SportEventListSerializer(serializers.ModelSerializer):
             'available_spots',
             'primary_image',
             'distance',
-            'recommendation_score',  # ÚJ
+            'recommendation_score',
             'created_at'
         ]
         read_only_fields = ['id', 'created_at', 'creator']
@@ -114,8 +114,7 @@ class SportEventListSerializer(serializers.ModelSerializer):
             user_lat = float(request.query_params.get('user_lat'))
             user_lng = float(request.query_params.get('user_lng'))
             
-            # Haversine formula
-            R = 6371  # Föld sugara kilométerben
+            R = 6371 
             
             lat1 = radians(user_lat)
             lon1 = radians(user_lng)
@@ -162,6 +161,7 @@ class SportEventDetailSerializer(serializers.ModelSerializer):
     available_spots = serializers.ReadOnlyField()
     is_past = serializers.ReadOnlyField()
     user_participation_status = serializers.SerializerMethodField()
+    average_rating = serializers.SerializerMethodField()
     
     class Meta:
         model = SportEvent
@@ -196,7 +196,8 @@ class SportEventDetailSerializer(serializers.ModelSerializer):
             'images',
             'user_participation_status',
             'created_at',
-            'updated_at'
+            'updated_at',
+            'average_rating'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'creator']
     
@@ -227,6 +228,12 @@ class SportEventDetailSerializer(serializers.ModelSerializer):
             return 'ongoing'
         else:
             return 'completed'
+        
+    def get_average_rating(self, obj):
+        ratings = obj.participants.filter(status='confirmed', rating__isnull=False).values_list('rating', flat=True)
+        if ratings:
+            return round(sum(ratings) / len(ratings), 1)
+        return None
 
 
 class SportEventCreateSerializer(serializers.ModelSerializer):
@@ -265,27 +272,23 @@ class SportEventCreateSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         """Összetett validációk és automatikus kalkulációk"""
         
-        # Automatikus end_date_time kiszámítása a duration_minutes alapján
         start = attrs.get('start_date_time')
         duration = attrs.get('duration_minutes')
         if start and duration and not attrs.get('end_date_time'):
             attrs['end_date_time'] = start + timedelta(minutes=duration)
 
-        # End date validálás (ha manuálisan lett volna megadva)
         if attrs.get('end_date_time') and attrs.get('start_date_time'):
             if attrs['end_date_time'] <= attrs['start_date_time']:
                 raise serializers.ValidationError({
                     "end_date_time": "A befejezés időpontja később kell hogy legyen, mint a kezdés."
                 })
         
-        # Min/max résztvevők validálása
         if attrs.get('min_participants') and attrs.get('max_participants'):
             if attrs['min_participants'] > attrs['max_participants']:
                 raise serializers.ValidationError({
                     "min_participants": "A minimum résztvevők száma nem lehet több, mint a maximum."
                 })
         
-        # Ár validálása
         if not attrs.get('is_free', True) and not attrs.get('price'):
             raise serializers.ValidationError({
                 "price": "Fizetős eseménynél meg kell adni az árat."
@@ -383,11 +386,15 @@ class EventRatingSerializer(serializers.ModelSerializer):
         model = EventParticipant
         fields = ['rating', 'feedback']
     
-    def validate_rating(self, value):
-        """Értékelés csak befejezett vagy folyamatban lévő eseményhez"""
+    def validate(self, attrs):
         participant = self.instance
+        event = participant.event
         
-        if participant.event.status not in ['completed', 'ongoing']:
-            raise serializers.ValidationError("Csak folyamatban lévő vagy már befejezett eseményt lehet értékelni.")
+        now = timezone.now()
+        duration = getattr(event, 'duration_minutes', 60) or 60
+        end_time = event.start_date_time + timedelta(minutes=duration)
+        
+        if now < event.start_date_time:
+            raise serializers.ValidationError("Még el sem kezdődött az esemény, nem értékelhető.")
             
-        return value
+        return attrs

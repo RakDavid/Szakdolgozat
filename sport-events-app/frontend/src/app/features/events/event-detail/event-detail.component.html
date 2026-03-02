@@ -115,6 +115,49 @@
           Még nincs résztvevő. Légy te az első!
         </p>
       </div>
+      
+      <div class="rating-summary-card" *ngIf="event?.average_rating">
+        <div class="rating-content">
+          <div class="rating-number">
+            <span class="score">{{ event.average_rating }}</span>
+            <span class="max">/ 5</span>
+          </div>
+          <div class="rating-stars">
+            <span class="star-icon">★</span>
+            <span class="rating-text">Átlagos értékelés</span>
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <div class="feedbacks-container" *ngIf="event?.participants">
+        <h3 class="detail-subtitle">Visszajelzések</h3>
+        
+        <div class="feedback-grid">
+          <ng-container *ngFor="let p of event.participants">
+            <div class="feedback-item" *ngIf="p.rating || p.feedback">
+              <div class="feedback-header">
+                <div class="user-meta">
+                  <span class="feedback-user">{{ p.user_detail?.username }}</span>
+                  <span class="feedback-date">{{ p.joined_at | date:'yyyy. MM. dd.' }}</span>
+                </div>
+                <div class="feedback-rating">
+                  <span class="star filled" *ngFor="let i of [1,2,3,4,5]" 
+                        [class.active]="i <= (p.rating || 0)">★</span>
+                </div>
+              </div>
+              <div class="feedback-content" *ngIf="p.feedback">
+                <p>"{{ p.feedback }}"</p>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+
+        <div class="empty-feedbacks" *ngIf="!event?.average_rating">
+          <p>Még nem érkezett értékelés erre az eseményre.</p>
+        </div>
+      </div>
 
     </div> 
     <div class="event-sidebar">

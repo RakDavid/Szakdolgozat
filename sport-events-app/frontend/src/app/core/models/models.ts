@@ -16,6 +16,7 @@ export interface User {
   sport_preferences?: UserSportPreference[];
   created_events_count?: number;
   participated_events_count?: number;
+  organizer_rating?: number;
   date_joined: string;
   created_at: string;
   updated_at: string;
@@ -124,6 +125,7 @@ export interface SportEvent {
   participants_count?: number;
   distance?: number;
   recommendation_score?: number;
+  average_rating?: number;
   user_participation_status?: {
     status: string;
     joined_at: string;
