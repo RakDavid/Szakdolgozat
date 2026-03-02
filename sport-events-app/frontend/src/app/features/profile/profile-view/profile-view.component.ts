@@ -112,6 +112,8 @@ export class ProfileViewComponent implements OnInit {
             this.sportPreferences = [];
         }
         
+        console.log('=== DEBUG: Teljes user objektum ===', this.user);
+        console.log('=== DEBUG: Szervezői értékelés (organizer_rating) ===', this.user?.organizer_rating);
         this.loading = false;
       },
       error: (error) => {

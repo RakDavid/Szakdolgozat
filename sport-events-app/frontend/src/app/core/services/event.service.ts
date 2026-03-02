@@ -135,7 +135,7 @@ export class EventService {
    */
   rateEvent(eventId: number, rating: number, feedback: string = ''): Observable<any> {
     const payload = { rating, feedback };
-    return this.http.patch(`/api/events/${eventId}/rate/`, payload);
+    return this.http.patch(`${this.apiUrl}/${eventId}/rate/`, payload);
   }
 
   /**

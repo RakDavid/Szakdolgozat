@@ -51,6 +51,13 @@ export class UserService {
   }
 
   /**
+   * Felhasználó profiljának végleges törlése
+   */
+  deleteProfile(): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/users/profile/delete/`);
+  }
+
+  /**
    * Sportág preferenciák lekérése
    */
   getSportPreferences(): Observable<UserSportPreference[]> {

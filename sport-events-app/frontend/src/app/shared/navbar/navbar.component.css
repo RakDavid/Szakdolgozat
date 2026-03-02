@@ -130,6 +130,7 @@
   overflow-y: auto;
   z-index: 1001;
   animation: fadeIn 0.2s;
+  overflow: hidden;
 }
 
 .notif-header {
@@ -178,15 +179,18 @@
 }
 
 .notif-item {
-  display: flex;
-  gap: 12px;
-  padding: 14px 20px;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 15px;
+  border-bottom: 1px solid #edf2f7;
   cursor: pointer;
-  transition: background 0.2s;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  transition: background-color 0.2s ease;
 }
 
-.notif-item:hover { background: #f8f9fa; }
+.notif-item:hover {
+  background-color: #f8fafc;
+}
 
 .notif-item.unread {
   background: #f0f4ff;
@@ -206,10 +210,11 @@
 
 .notif-message {
   font-size: 13px;
-  color: #666;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: #4a5568;
+  margin-top: 5px;
+  white-space: normal; 
+  word-break: break-word; 
+  line-height: 1.5;
 }
 
 .notif-time {
@@ -223,6 +228,20 @@
   text-align: center;
   color: #999;
   font-style: italic;
+}
+
+.notif-list {
+  max-height: 450px; 
+  overflow-y: auto; 
+  scrollbar-width: thin; 
+}
+
+.notif-list::-webkit-scrollbar {
+  width: 6px;
+}
+.notif-list::-webkit-scrollbar-thumb {
+  background-color: #cbd5e0;
+  border-radius: 10px;
 }
 
 /* User Menu */

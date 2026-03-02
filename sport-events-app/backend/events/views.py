@@ -9,6 +9,7 @@ from django.db import models
 from datetime import timedelta
 from math import radians, sin, cos, sqrt, atan2
 from .models import SportEvent, EventParticipant, EventImage
+from notifications.models import Notification
 from notifications.services import notify_join_request, notify_participant_status_change
 from .recommendation_service import get_recommended_events
 from .serializers import (
@@ -320,8 +321,7 @@ class ManageParticipantView(generics.UpdateAPIView):
 class RateEventView(generics.UpdateAPIView):
     """
     Esemény értékelése (csak résztvevő, befejezett esemény)
-    POST /api/events/{event_id}/rate/
-    Body: {"rating": 5, "feedback": "..."}
+    POST/PATCH /api/events/{event_id}/rate/
     """
     serializer_class = EventRatingSerializer
     permission_classes = [IsAuthenticated]
@@ -333,6 +333,21 @@ class RateEventView(generics.UpdateAPIView):
             user=self.request.user,
             status='confirmed'
         )
+
+    def perform_update(self, serializer):
+        participant = serializer.save()
+        
+        if participant.event.creator != self.request.user:
+            user_display = f"{self.request.user.full_name} (@{self.request.user.username})" if self.request.user.full_name else f"@{self.request.user.username}"
+            
+            Notification.objects.create(
+                recipient=participant.event.creator,
+                notification_type='event_rated',
+                title="Új értékelés érkezett!",
+                message=f"{user_display} értékelte a(z) '{participant.event.title}' eseményedet: {participant.rating} ⭐",
+                related_event_id=participant.event.id,
+                related_event_title=participant.event.title
+            )
 
 
 class EventImageUploadView(generics.CreateAPIView):

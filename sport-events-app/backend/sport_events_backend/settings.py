@@ -86,9 +86,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'sport_events_backend.wsgi.application'
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'SportEvents <noreply@sportevents.hu>'
-
 # Database
 DATABASES = {
     'default': {

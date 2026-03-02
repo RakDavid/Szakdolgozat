@@ -194,6 +194,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     sport_preferences = UserSportPreferenceSerializer(many=True, read_only=True)
     created_events_count = serializers.SerializerMethodField()
     participated_events_count = serializers.SerializerMethodField()
+    organizer_rating = serializers.SerializerMethodField()
     
     class Meta:
         model = User
@@ -216,7 +217,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'participated_events_count',
             'date_joined',
             'created_at',
-            'updated_at'
+            'updated_at',
+            'organizer_rating'
         ]
         read_only_fields = [
             'id', 
@@ -236,3 +238,14 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def get_participated_events_count(self, obj):
         """Részvett események száma"""
         return obj.event_participations.filter(status__in=['pending', 'confirmed']).count()
+    
+    def get_organizer_rating(self, obj):
+        ratings = EventParticipant.objects.filter(
+            event__creator=obj,
+            status='confirmed',
+            rating__isnull=False
+        ).values_list('rating', flat=True)
+        
+        if ratings:
+            return round(sum(ratings) / len(ratings), 1)
+        return None

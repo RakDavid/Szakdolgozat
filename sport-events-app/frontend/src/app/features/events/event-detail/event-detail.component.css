@@ -90,12 +90,55 @@
   font-size: 42px;
   font-weight: 800;
   margin: 0;
+  margin-bottom: 0; 
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
   line-height: 1.2;
   
   white-space: nowrap; 
   overflow: hidden; 
   text-overflow: ellipsis;
+}
+
+.event-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 20px; 
+  flex-wrap: wrap;
+}
+
+.hero-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.5); 
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 16px;
+  border-radius: 30px;
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.rating-number {
+  font-weight: 800;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.star-rating-fill {
+  --percent: calc(var(--rating) / 5 * 100%);
+  
+  display: inline-block;
+  font-size: 1.4rem;
+  font-family: Arial, sans-serif;
+  line-height: 1;
+  letter-spacing: 2px;
+  
+  background: linear-gradient(90deg, #ffc107 var(--percent), rgba(255,255,255,0.3) var(--percent));
+  
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* FŐ TARTALOM */
@@ -433,6 +476,56 @@ app-map {
   border: 1px dashed #dee2e6;
   border-radius: 8px;
   color: #868e96;
+}
+
+.feedback-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+}
+
+.feedback-date {
+  font-size: 12px;
+  color: #a0aec0;
+  margin-top: 4px;
+}
+
+.feedback-stars {
+  display: flex;
+  gap: 2px;
+}
+
+.feedback-stars .star {
+  color: #e2e8f0;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.feedback-stars .star.active {
+  color: #ffc107;
+}
+
+.feedback-text {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #edf2f7;
+  color: #4a5568;
+  font-style: italic;
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+
+.participant-item {
+  transition: all 0.2s ease;
+}
+
+.participant-item:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e0;
+  transform: translateY(-1px);
 }
 
 /* Függőben lévő kérések */

@@ -4,6 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { User } from '../../core/models/models';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-navbar',
@@ -97,10 +98,27 @@ export class NavbarComponent implements OnInit {
     this.closeMenus();
   }
 
+  getProfileImageUrl(): string {
+    if (!this.currentUser || !this.currentUser.profile_picture) return '';
+    
+    const pic = this.currentUser.profile_picture;
+    
+    if (pic.startsWith('http')) {
+      return pic;
+    }
+    
+    const baseUrl = environment.apiUrl.replace('/api', '');
+    return `${baseUrl}${pic}`;
+  }
+
   getUserInitials(): string {
     if (!this.currentUser) return '';
     const firstInitial = this.currentUser.first_name?.charAt(0) || '';
     const lastInitial = this.currentUser.last_name?.charAt(0) || '';
-    return (lastInitial + firstInitial).toUpperCase() || this.currentUser.username.charAt(0).toUpperCase();
+    const initials = (lastInitial + firstInitial).toUpperCase();
+    
+    if (initials) return initials;
+    
+    return this.currentUser.username?.charAt(0)?.toUpperCase() || '?';
   }
 }

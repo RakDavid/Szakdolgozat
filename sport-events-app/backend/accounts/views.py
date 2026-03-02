@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from django.conf import settings
-import google.generativeai as genai
+from google import genai
 import json
 from .models import User, SportType, UserSportPreference
 from .serializers import (
@@ -248,20 +248,15 @@ class SportPreferenceAiSuggestView(APIView):
             return Response({'error': 'Leírás megadása kötelező.'}, status=400)
 
         try:
-            # 1. Kérjük le a sportágakat az adatbázisból
             sports = SportType.objects.filter(is_active=True)
             if not sports.exists():
                 return Response({'error': 'Nincsenek sportágak az adatbázisban.'}, status=400)
 
-            # 2. Csináljunk belőle egy szöveges listát az AI-nak (pl. "1: Foci, 2: Kosár, 3: Úszás")
             sport_list_text = ", ".join([f"{s.id}: {s.name}" for s in sports])
 
-            # 3. AI konfigurálása
             api_key = getattr(settings, 'GEMINI_API_KEY', None)
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel('gemini-2.5-flash-lite')
+            client = genai.Client(api_key=api_key)
 
-            # 4. A Szuper-precíz Prompt
             prompt = f"""
             Felhasználó leírása: "{description}"
 
@@ -279,9 +274,11 @@ class SportPreferenceAiSuggestView(APIView):
             {{"suggestions": [{{"sport_type": 1, "skill_level": "beginner", "interest_level": 7}}]}}
             """
 
-            response = model.generate_content(prompt)
+            response = client.models.generate_content(
+                model='gemini-2.5-flash', 
+                contents=prompt
+            )
             
-            # JSON tisztítása (biztos ami biztos)
             text_content = response.text
             if "```" in text_content:
                 text_content = text_content.split("```json")[-1].split("```")[0].strip()

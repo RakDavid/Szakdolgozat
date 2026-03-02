@@ -640,60 +640,40 @@
   animation: spin 1s linear infinite;
 }
 
-/* Szervezői értékelés stílusai */
-.organizer-rating-section {
-  margin: 25px 0;
-  padding: 20px;
-  background-color: #f8f9fa;
-  border-radius: 12px;
-  border-left: 5px solid #20c997; /* Kellemes zöld szín, a megbízhatóságot jelzi */
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+.section-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 0.5rem;
 }
 
-.rating-title {
-  font-size: 1.2rem;
-  color: #343a40;
-  margin-bottom: 15px;
-  font-weight: 600;
-}
-
-.rating-card {
+.organizer-rating-inline {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 20px;
+  gap: 5px;
+  background: #f8f9fa;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
 }
 
-.score-display {
-  display: flex;
-  align-items: baseline;
+.organizer-rating-inline .star {
+  color: #ffc107;
+  font-size: 1.2rem;
 }
 
-.score-big {
-  font-size: 2.2rem;
+.organizer-rating-inline .rating-value {
   font-weight: 800;
+  font-size: 1.1rem;
   color: #212529;
 }
 
-.score-max {
-  font-size: 1.1rem;
+.organizer-rating-inline .rating-count {
   color: #6c757d;
-  margin-left: 5px;
-}
-
-.stars-display .star {
-  font-size: 1.5rem;
-  color: #e9ecef;
-  margin-right: 2px;
-}
-
-.stars-display .star.active {
-  color: #ffc107;
-}
-
-.rating-text {
-  color: #868e96;
-  font-style: italic;
+  font-size: 0.9rem;
 }
 
 @keyframes spin {

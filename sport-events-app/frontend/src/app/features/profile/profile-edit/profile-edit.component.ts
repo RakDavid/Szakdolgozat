@@ -7,6 +7,7 @@ import { SportTypeService } from '../../../core/services/sport-type.service';
 import { User, UserUpdate, SportType, UserSportPreference, CreateUserSportPreference } from '../../../core/models/models';
 import { GeocodingService, GeocodingResult } from '../../../core/services/geocoding.service';
 import { SportPreferencesComponent } from '../sport-preferences/sport-preferences.component';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-profile-edit',
@@ -48,7 +49,8 @@ export class ProfileEditComponent implements OnInit {
     private sportTypeService: SportTypeService,
     private router: Router,
     private geocodingService: GeocodingService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -197,6 +199,26 @@ export class ProfileEditComponent implements OnInit {
       );
     } else {
       alert('A böngésződ nem támogatja a helymeghatározást.');
+    }
+  }
+
+  deleteMyProfile(): void {
+    const confirmDelete = confirm('⚠️ BIZTOSAN TÖRÖLNI SZERETNÉD A PROFILODAT? \n\nEz a művelet végleges és nem vonható vissza! Minden eseményed és jelentkezésed azonnal törlődik.');
+    
+    if (confirmDelete) {
+      this.userService.deleteProfile().subscribe({
+        next: () => {
+          this.authService.logout(); 
+
+          this.router.navigate(['/']);
+          
+          alert('A profilod sikeresen törlésre került.');
+        },
+        error: (err) => {
+          console.error('Hiba a profil törlésekor:', err);
+          alert('Hiba történt a profil törlése során. Kérjük, próbáld újra később.');
+        }
+      });
     }
   }
 

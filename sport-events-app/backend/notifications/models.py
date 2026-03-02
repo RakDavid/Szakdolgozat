@@ -8,6 +8,7 @@ class Notification(models.Model):
         ('join_approved', 'Jelentkezés jóváhagyva'),
         ('join_rejected', 'Jelentkezés elutasítva'),
         ('join_cancelled', 'Jelentkezés lemondva'),
+        ('event_rated', 'Új értékelés'),
     ]
 
     recipient = models.ForeignKey(

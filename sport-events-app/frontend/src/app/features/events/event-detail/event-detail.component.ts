@@ -31,6 +31,8 @@ export class EventDetailComponent implements OnInit {
   isSubmittingRating: boolean = false;
   ratingSuccess: boolean = false;
   ratingError: string = '';
+  selectedRating: number = 0;
+  ratingFeedback: string = '';
 
   currentUserId: number | null = null;
   isCreator = false;
@@ -179,7 +181,9 @@ export class EventDetailComponent implements OnInit {
       return participantUserId === this.currentUserId;
     });
 
-    return myParticipation?.status === 'confirmed';
+    const isConfirmed = myParticipation?.status === 'confirmed';
+    
+    return isConfirmed && this.isEventFinishedOrStarted && !this.hasRated();
   }
 
   canLeaveEvent(): boolean {
@@ -327,24 +331,46 @@ export class EventDetailComponent implements OnInit {
   }
 
   setRating(val: number): void {
-    this.ratingValue = val;
+    this.selectedRating = val;
+  }
+
+  get isEventFinishedOrStarted(): boolean {
+    return this.event?.status === 'ongoing' || this.event?.status === 'completed' || !!this.event?.is_past;
+  }
+
+  hasRated(): boolean {
+    if (!this.event || !this.currentUserId) return false;
+    
+    const myParticipant = this.participants.find(p => {
+      const participantUserId = typeof p.user === 'object' ? (p.user as any).id : p.user;
+      return participantUserId === this.currentUserId;
+    });
+    
+    return !!(myParticipant && myParticipant.rating);
   }
 
  submitRating(): void {
     if (!this.event) return;
-    if (this.ratingValue < 1 || this.ratingValue > 5) return;
+    if (this.selectedRating < 1 || this.selectedRating > 5) return;
     
     this.isSubmittingRating = true;
     this.ratingError = '';
     
-    this.eventService.rateEvent(this.event.id, this.ratingValue, this.feedbackText).subscribe({
+    this.eventService.rateEvent(this.event.id, this.selectedRating, this.ratingFeedback).subscribe({
       next: () => {
         this.isSubmittingRating = false;
         this.ratingSuccess = true;
+        
+        this.loadEventDetails(this.event!.id);
+        this.loadParticipants(this.event!.id);
+        
+        this.selectedRating = 0;
+        this.ratingFeedback = '';
+        
+        setTimeout(() => this.ratingSuccess = false, 3000);
       },
       error: (err) => {
         this.isSubmittingRating = false;
-        
         console.error('Értékelési hiba:', err.error);
         this.ratingError = err.error?.detail || err.error?.error || 'Hiba történt az értékelés során.';
       }

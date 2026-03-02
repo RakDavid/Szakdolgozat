@@ -50,7 +50,9 @@
             >
               <div class="notif-icon">
                 {{ notif.notification_type === 'join_request' ? '👤' :
-                  notif.notification_type === 'join_approved' ? '✅' : '❌' }}
+                  notif.notification_type === 'join_approved' ? '✅' : 
+                  notif.notification_type === 'event_rated' ? '⭐' :
+                  notif.notification_type === 'join_rejected' ? '❌' : '🔔' }}
               </div>
               <div class="notif-content">
                 <div class="notif-title">{{ notif.title }}</div>
@@ -72,9 +74,10 @@
           <div class="user-avatar" *ngIf="!currentUser.profile_picture">
             {{ getUserInitials() }}
           </div>
+          
           <img
             *ngIf="currentUser.profile_picture"
-            [src]="currentUser.profile_picture"
+            [src]="getProfileImageUrl()" 
             alt="Profile"
             class="user-avatar-img"
           />
