@@ -6,6 +6,7 @@ import { EventService } from '../../../core/services/event.service';
 import { SportTypeService } from '../../../core/services/sport-type.service';
 import { GeocodingService, GeocodingResult } from '../../../core/services/geocoding.service';
 import { SportType, CreateSportEvent } from '../../../core/models/models';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-event-create',
@@ -26,7 +27,6 @@ export class EventCreateComponent implements OnInit {
   selectedFile: File | null = null;
   imagePreview: string | null = null;
   
-  // Location
   selectedLocation: { lat: number, lng: number } | null = null;
   useCurrentLocation = false;
   searchingLocation = false;
@@ -39,7 +39,8 @@ export class EventCreateComponent implements OnInit {
     private sportTypeService: SportTypeService,
     private geocodingService: GeocodingService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -55,26 +56,17 @@ export class EventCreateComponent implements OnInit {
   }
 
   loadSportTypes(): void {
-    console.log('Loading sport types...');
     this.sportTypeService.getAllSportTypes().subscribe({
       next: (types) => {
-        console.log('Raw response:', types);
-        console.log('Is array?', Array.isArray(types));
-        console.log('Type of:', typeof types);
-        
-        // Ha nem tömb, próbáljuk kikényszeríteni
         if (Array.isArray(types)) {
           this.sportTypes = types;
         } else {
-          // Ha objektum, lehet hogy results property-ben van
           this.sportTypes = (types as any).results || [];
         }
-        
-        console.log('Final sportTypes:', this.sportTypes);
       },
       error: (error) => {
-        console.error('Error loading sport types', error);
-        this.sportTypes = []; // Üres tömb hiba esetén
+        console.error('Nem sikerült a sportágak betöltése', error);
+        this.sportTypes = []; 
       }
     });
   }
@@ -105,7 +97,6 @@ export class EventCreateComponent implements OnInit {
       notes: ['']
     });
 
-    // Price validation
     this.eventForm.get('is_free')?.valueChanges.subscribe(isFree => {
       const priceControl = this.eventForm.get('price');
       if (isFree) {
@@ -133,10 +124,8 @@ export class EventCreateComponent implements OnInit {
           this.selectedLocation = { lat, lng };
           this.eventForm.patchValue({ latitude: lat, longitude: lng });
 
-          // Reverse geocoding: pontos cím lekérése
           this.geocodingService.reverseGeocode(lat, lng).subscribe({
             next: (address) => {
-              // Első rész = utca + házszám (Nominatim formátum)
               const streetPart = address.split(',')[0]?.trim() || 'Jelenlegi helyszín';
               this.eventForm.patchValue({
                 location_name: streetPart,
@@ -151,19 +140,17 @@ export class EventCreateComponent implements OnInit {
           });
         },
         (error) => {
-          console.error('Error getting location', error);
-          alert('Nem sikerült lekérni a helyzeted. Kérlek, add meg manuálisan!');
+          this.toastService.showError('Nem sikerült lekérni a helyzeted. Kérlek, add meg manuálisan!');
           this.useCurrentLocation = false;
           this.searchingLocation = false;
         }
       );
     } else {
-      alert('A böngésződ nem támogatja a helymeghatározást.');
+      this.toastService.showError('A böngésződ nem támogatja a helymeghatározást.');
     }
   }
 
   setManualLocation(): void {
-    // Placeholder coordinates (Budapest center)
     const lat = parseFloat(prompt('Add meg a szélességi fokot:', '47.4979') || '47.4979');
     const lng = parseFloat(prompt('Add meg a hosszúsági fokot:', '19.0402') || '19.0402');
     
@@ -183,7 +170,7 @@ export class EventCreateComponent implements OnInit {
     const searchQuery = address || locationName;
     
     if (!searchQuery || searchQuery.trim().length < 3) {
-      alert('Kérlek, adj meg legalább 3 karaktert a kereséshezhez!');
+      this.toastService.showError('Kérlek, adj meg legalább 3 karaktert a kereséshez!');
       return;
     }
 
@@ -195,12 +182,12 @@ export class EventCreateComponent implements OnInit {
         this.searchingLocation = false;
         
         if (results.length === 0) {
-          alert('Nem találtunk eredményt ehhez a címhez. Próbálj meg pontosabb címet megadni!');
+          this.toastService.showError('Nem találtunk eredményt ehhez a címhez. Próbálj meg pontosabb címet megadni!');
         }
       },
       error: (error) => {
         console.error('Geocoding error', error);
-        alert('Hiba történt a keresés során. Próbáld újra!');
+        this.toastService.showError('Hiba történt a keresés során. Próbáld újra!');
         this.searchingLocation = false;
       }
     });
@@ -225,12 +212,10 @@ export class EventCreateComponent implements OnInit {
     this.loading = true;
     this.eventService.getEventById(id).subscribe({
       next: (event) => {
-        // A dátumot át kell alakítani a datetime-local input formátumára (YYYY-MM-DDTHH:mm)
         const dateObj = new Date(event.start_date_time);
         const pad = (n: number) => n.toString().padStart(2, '0');
         const formattedDate = `${dateObj.getFullYear()}-${pad(dateObj.getMonth() + 1)}-${pad(dateObj.getDate())}T${pad(dateObj.getHours())}:${pad(dateObj.getMinutes())}`;
 
-        // A helyszín koordinátáit is eltároljuk a térképhez
         this.selectedLocation = { lat: Number(event.latitude), lng: Number(event.longitude) };
 
         this.eventForm.patchValue({
@@ -255,40 +240,29 @@ export class EventCreateComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Hiba az esemény betöltésekor', error);
-        alert('Nem sikerült betölteni a szerkesztendő eseményt.');
+        this.toastService.showError('Nem sikerült betölteni a szerkesztendő eseményt.');
         this.router.navigate(['/my-events']);
       }
     });
   }
 
   onSubmit(): void {
-    console.log('Submitting form...');
-
     if (this.eventForm.invalid) {
-      console.warn('Form invalid:', this.eventForm.value);
-
+      this.toastService.showError('Kérlek töltsd ki az összes kötelező mezőt helyesen!');
       Object.keys(this.eventForm.controls).forEach(key => {
         const control = this.eventForm.get(key);
         control?.markAsTouched();
-        console.warn(`${key}:`, control?.errors);
       });
-
       return;
     }
 
     this.loading = true;
-    this.errorMessage = '';
     this.errors = {};
-
     const formData: CreateSportEvent = this.eventForm.value;
-
-    console.log('Sending payload to backend:', JSON.stringify(formData, null, 2));
-
     if (this.isEditMode && this.eventId) {
       this.eventService.updateEvent(this.eventId, formData).subscribe({
         next: () => {
-          alert('✅ Esemény sikeresen frissítve!');
+          this.toastService.showSuccess('Esemény sikeresen frissítve!');
           this.router.navigate(['/events', this.eventId]); 
         },
         error: (error) => this.handleBackendError(error),
@@ -299,7 +273,7 @@ export class EventCreateComponent implements OnInit {
     } else {
       this.eventService.createEvent(formData).subscribe({
         next: (event) => {
-          alert('✅ Esemény sikeresen létrehozva!');
+          this.toastService.showSuccess('Esemény sikeresen létrehozva!');
           this.router.navigate(['/my-events']);
         },
         error: (error) => this.handleBackendError(error),
@@ -311,24 +285,21 @@ export class EventCreateComponent implements OnInit {
   }
 
   private handleBackendError(error: any): void {
-    console.error('%cBackend error response:', 'color: red; font-weight: bold;', error);
-
     if (error.error) {
-      console.log('%cRaw backend error body:', 'color: orange;', error.error);
-
       if (typeof error.error === 'string') {
-        this.errorMessage = error.error;
+        this.toastService.showError(error.error);
       } else {
         this.errors = error.error;
         
-        this.errorMessage =
-          'Hiba az űrlapban:\n' +
+        const errorMsg = 'Hiba az űrlapban:\n' + 
           Object.keys(error.error)
             .map(key => `• ${key}: ${error.error[key]}`)
             .join('\n');
+            
+        this.toastService.showError(errorMsg);
       }
     } else {
-      this.errorMessage = 'Ismeretlen hiba történt.';
+      this.toastService.showError('Ismeretlen hiba történt a szerverrel való kommunikáció során.');
     }
 
     this.loading = false;

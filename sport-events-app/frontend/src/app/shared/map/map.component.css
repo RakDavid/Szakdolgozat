@@ -7,7 +7,6 @@
   z-index: 1;
 }
 
-/* Fix for broken tiles */
 :host ::ng-deep .leaflet-tile-container img {
   max-width: none !important;
   max-height: none !important;

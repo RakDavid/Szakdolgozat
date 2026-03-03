@@ -6,6 +6,7 @@ import { SportEvent, EventParticipant } from '../../../core/models/models';
 import { MapComponent } from '../../../shared/map/map.component';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-my-events',
@@ -28,7 +29,7 @@ export class MyEventsComponent implements OnInit {
   successMessage = '';
   errorMessage = '';
 
-  constructor(private eventService: EventService) {}
+  constructor(private eventService: EventService, private toastService: ToastService) {}
 
   ngOnInit(): void {
     this.loadAll();
@@ -49,7 +50,7 @@ export class MyEventsComponent implements OnInit {
         this.loadPendingRequests();
       },
       error: (err) => {
-        console.error('Error loading events', err);
+        console.error('Hiba az események betöltése közben', err);
         this.loading = false;
       }
     });
@@ -114,15 +115,16 @@ export class MyEventsComponent implements OnInit {
 
   approveParticipant(eventId: number, participantId: number): void {
     this.approvingId = participantId;
+    
     this.eventService.manageParticipant(eventId, participantId, { status: 'confirmed' }).subscribe({
       next: () => {
-        this.successMessage = 'Résztvevő jóváhagyva!';
+        this.toastService.showSuccess('Résztvevő jóváhagyva!');
+        
         this.approvingId = null;
         this.removePendingRequest(participantId);
-        setTimeout(() => this.successMessage = '', 3000);
       },
       error: () => {
-        this.errorMessage = 'Hiba a jóváhagyás során.';
+        this.toastService.showError('Hiba a jóváhagyás során.');
         this.approvingId = null;
       }
     });
@@ -130,16 +132,17 @@ export class MyEventsComponent implements OnInit {
 
   rejectParticipant(eventId: number, participantId: number): void {
     if (!confirm('Biztosan elutasítod ezt a kérést?')) return;
+    
     this.rejectingId = participantId;
+    
     this.eventService.manageParticipant(eventId, participantId, { status: 'rejected' }).subscribe({
       next: () => {
-        this.successMessage = 'Kérés elutasítva.';
+        this.toastService.showSuccess('Kérés elutasítva.');
         this.rejectingId = null;
         this.removePendingRequest(participantId);
-        setTimeout(() => this.successMessage = '', 3000);
       },
       error: () => {
-        this.errorMessage = 'Hiba az elutasítás során.';
+        this.toastService.showError('Hiba az elutasítás során.');
         this.rejectingId = null;
       }
     });

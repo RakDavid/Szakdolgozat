@@ -6,6 +6,7 @@ import { EventService } from '../../../core/services/event.service';
 import { SportTypeService } from '../../../core/services/sport-type.service';
 import { SportEvent, SportType, EventFilterParams } from '../../../core/models/models';
 import { MapComponent } from '../../../shared/map/map.component';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-event-list',
@@ -19,13 +20,10 @@ export class EventListComponent implements OnInit {
   sportTypes: SportType[] = [];
   loading = false;
   
-  // View mode
   viewMode: 'list' | 'map' = 'list';
   
-  // Map markers
   mapMarkers: Array<{lat: number, lng: number, popup: string}> = [];
-  
-  // Filters
+
   filters: EventFilterParams = {
     search: '',
     sport_type: undefined,
@@ -35,20 +33,19 @@ export class EventListComponent implements OnInit {
     ordering: 'start_date_time'
   };
 
-  // Pagination
   currentPage = 1;
   totalCount = 0;
   hasNext = false;
   hasPrevious = false;
 
-  // Location search
   useLocation = false;
   userLocation: { lat: number, lng: number } | null = null;
   searchRadius = 10;
 
   constructor(
     private eventService: EventService,
-    private sportTypeService: SportTypeService
+    private sportTypeService: SportTypeService,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -57,26 +54,17 @@ export class EventListComponent implements OnInit {
   }
 
   loadSportTypes(): void {
-    console.log('Loading sport types...');
     this.sportTypeService.getAllSportTypes().subscribe({
       next: (types) => {
-        console.log('Raw response:', types);
-        console.log('Is array?', Array.isArray(types));
-        console.log('Type of:', typeof types);
-        
-        // Ha nem tömb, próbáljuk kikényszeríteni
         if (Array.isArray(types)) {
           this.sportTypes = types;
         } else {
-          // Ha objektum, lehet hogy results property-ben van
           this.sportTypes = (types as any).results || [];
         }
-        
-        console.log('Final sportTypes:', this.sportTypes);
       },
       error: (error) => {
-        console.error('Error loading sport types', error);
-        this.sportTypes = []; // Üres tömb hiba esetén
+        console.error('Nem sikerült a sportágak betöltése', error);
+        this.sportTypes = []; 
       }
     });
   }
@@ -89,7 +77,6 @@ export class EventListComponent implements OnInit {
       page: this.currentPage
     };
 
-    // Location filter hozzáadása, ha engedélyezett
     if (this.useLocation && this.userLocation) {
       params.user_lat = this.userLocation.lat;
       params.user_lng = this.userLocation.lng;
@@ -104,11 +91,10 @@ export class EventListComponent implements OnInit {
         this.hasPrevious = !!response.previous;
         this.loading = false;
         
-        // Térkép markerek frissítése IDE KERÜL!
         this.updateMapMarkers();
       },
       error: (error) => {
-        console.error('Error loading events', error);
+        console.error('Nem sikerült az események betöltése', error);
         this.loading = false;
       }
     });
@@ -168,13 +154,12 @@ export class EventListComponent implements OnInit {
           this.applyFilters();
         },
         (error) => {
-          console.error('Error getting location', error);
-          alert('Nem sikerült lekérni a helyzeted. Kérlek, engedélyezd a helymeghatározást.');
+          this.toastService.showError('Nem sikerült lekérni a helyzeted. Kérlek, engedélyezd a helymeghatározást.');
           this.useLocation = false;
         }
       );
     } else {
-      alert('A böngésződ nem támogatja a helymeghatározást.');
+      this.toastService.showError('A böngésződ nem támogatja a helymeghatározást.');
       this.useLocation = false;
     }
   }

@@ -22,7 +22,6 @@ export class AuthGuard implements CanActivate {
       return true;
     }
     
-    // Nem bejelentkezett felhasználó átirányítása login oldalra
     this.router.navigate(['/login'], {
       queryParams: { returnUrl: state.url }
     });

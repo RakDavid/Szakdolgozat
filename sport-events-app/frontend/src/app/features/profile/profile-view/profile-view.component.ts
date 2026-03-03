@@ -7,6 +7,7 @@ import { SportTypeService } from '../../../core/services/sport-type.service';
 import { EventService } from '../../../core/services/event.service';
 import { ActivatedRoute } from '@angular/router';
 import { User, UserSportPreference, SportType, SportEvent } from '../../../core/models/models';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-profile-view',
@@ -36,7 +37,8 @@ export class ProfileViewComponent implements OnInit {
     private sportTypeService: SportTypeService,
     private eventService: EventService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -70,7 +72,7 @@ export class ProfileViewComponent implements OnInit {
         this.loading = false;
       },
       error: () => {
-        this.errorMessage = 'A felhasználó nem található.';
+        this.toastService.showError('A felhasználó nem található.');
         this.loading = false;
         this.router.navigate(['/']);
       }
@@ -82,7 +84,7 @@ export class ProfileViewComponent implements OnInit {
       next: (types) => {
         this.sportTypes = Array.isArray(types) ? types : (types as any).results || [];
       },
-      error: (error) => console.error('Error loading sport types', error)
+      error: (error) => console.error('Hiba a sportágak betöltése közben', error)
     });
   }
 
@@ -117,8 +119,7 @@ export class ProfileViewComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error loading profile', error);
-        this.errorMessage = 'Profil betöltése sikertelen.';
+        this.toastService.showError('Profil betöltése sikertelen.');
         this.loading = false;
       }
     });

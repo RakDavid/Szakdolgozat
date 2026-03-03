@@ -10,7 +10,7 @@ import * as L from 'leaflet';
   styleUrls: ['./map.component.css']
 })
 export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
-  @Input() latitude: number = 47.4979;  // Budapest default
+  @Input() latitude: number = 47.4979; 
   @Input() longitude: number = 19.0402;
   @Input() zoom: number = 13;
   @Input() markers: Array<{lat: number, lng: number, title?: string, popup?: string}> = [];
@@ -22,17 +22,14 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   public mapId: string;
 
   constructor() {
-    // Generate unique ID for each map instance
     this.mapId = 'map-' + Math.random().toString(36).substr(2, 9);
   }
 
   ngOnInit(): void {}
 
   ngAfterViewInit(): void {
-    // Fix Leaflet marker icon issue BEFORE map init
     this.fixLeafletIconIssue();
     
-    // Delay map initialization
     setTimeout(() => {
       this.initMap();
     }, 100);
@@ -45,37 +42,30 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private initMap(): void {
-    // Initialize map with unique ID
     this.map = L.map(this.mapId, {
       center: [this.latitude, this.longitude],
       zoom: this.zoom
     });
 
-    // Add tile layer (OpenStreetMap)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '© OpenStreetMap, © CartoDB'
     }).addTo(this.map);
 
-    // Create marker layer group
     this.markerLayer = L.layerGroup().addTo(this.map);
 
-    // Add markers if provided
     if (this.markers.length > 0) {
       this.addMarkers();
     } else {
-      // Add single marker at center
       this.addMarker(this.latitude, this.longitude);
     }
 
-    // Handle map click if clickable
     if (this.clickable) {
       this.map.on('click', (e: L.LeafletMouseEvent) => {
         this.onMapClick(e);
       });
     }
 
-    // Fix map rendering issues
     setTimeout(() => {
       if (this.map) {
         this.map.invalidateSize();
@@ -94,7 +84,6 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       leafletMarker.addTo(this.markerLayer);
     });
 
-    // Fit bounds to show all markers
     if (this.markers.length > 1) {
       const bounds = L.latLngBounds(this.markers.map(m => [m.lat, m.lng]));
       this.map.fitBounds(bounds, { padding: [50, 50] });
@@ -113,16 +102,13 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private onMapClick(e: L.LeafletMouseEvent): void {
-    // Clear existing markers
     this.markerLayer.clearLayers();
     
-    // Add new marker at clicked location
     const lat = e.latlng.lat;
     const lng = e.latlng.lng;
     
     this.addMarker(lat, lng, `Lat: ${lat.toFixed(6)}<br>Lng: ${lng.toFixed(6)}`);
     
-    // Emit event or callback (you can add @Output() here if needed)
     console.log('Map clicked:', { lat, lng });
   }
 
@@ -141,7 +127,6 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     L.Marker.prototype.options.icon = iconDefault;
   }
 
-  // Public methods for external control
   public setCenter(lat: number, lng: number, zoom?: number): void {
     if (this.map) {
       this.map.setView([lat, lng], zoom || this.zoom);

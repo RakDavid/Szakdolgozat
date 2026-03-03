@@ -31,14 +31,29 @@
     </div>
 
     <div class="hero-image">
-      <div class="hero-illustration">
-        <span class="illustration-emoji">🏃‍♂️⚽🏀🎾</span>
+      <div class="hero-image-wrapper">
+        <div class="glow-bg"></div>
+          <img src="https://images.unsplash.com/photo-1517649763962-0c623066013b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Sportoló közösség" class="main-hero-photo">
+        <div class="glass-badge badge-1">
+          <span class="badge-icon">🏃‍♂️</span>
+          <span>Aktív közösség</span>
+        </div>
+        <div class="glass-badge badge-2">
+          <span class="badge-icon">📍</span>
+          <span>Helyi események</span>
+        </div>
+        <div class="glass-badge badge-3">
+          <span class="badge-icon">🏆</span>
+          <span>Találj partnereket</span>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- Features Section -->
   <section class="features-section">
+    <div class="features-glow-bg"></div>
+
     <div class="section-header">
       <h2 class="section-title">Miért válassz minket?</h2>
       <p class="section-description">
@@ -81,13 +96,21 @@
               [markers]="[{lat: event.latitude, lng: event.longitude, popup: event.location_name}]"
             ></app-map>
           </div>
-          <div class="event-badge" [class.free]="event.is_free">
-            {{ event.is_free ? 'Ingyenes' : (event.price + ' Ft') }}
+          <div class="card-top-right-badges">
+            <div class="event-badge" [class.free]="event.is_free">
+              {{ event.is_free ? 'Ingyenes' : (event.price + ' Ft') }}
+            </div>
+            <div class="badge-status-small" [class]="event.status">
+              {{ getStatusLabel(event.status) }}
+            </div>
           </div>
         </div>
         <div class="event-content">
-          <div class="event-sport-type">
-            {{ event.sport_type_detail?.name }}
+          <div class="event-meta">
+            <span class="event-sport-type">{{ event.sport_type_detail?.name }}</span>
+            <span class="event-difficulty" [class]="event.difficulty">
+              {{ getDifficultyLabel(event.difficulty) }}
+            </span>
           </div>
           <h3 class="event-title">{{ event.title }}</h3>
           
@@ -165,13 +188,21 @@
               [markers]="[{lat: event.latitude, lng: event.longitude, popup: event.location_name}]"
             ></app-map>
           </div>
-          <div class="event-badge" [class.free]="event.is_free">
-            {{ event.is_free ? 'Ingyenes' : (event.price + ' Ft') }}
+          <div class="card-top-right-badges">
+            <div class="event-badge" [class.free]="event.is_free">
+              {{ event.is_free ? 'Ingyenes' : (event.price + ' Ft') }}
+            </div>
+            <div class="badge-status-small" [class]="event.status">
+              {{ getStatusLabel(event.status) }}
+            </div>
           </div>
         </div>
         <div class="event-content">
-          <div class="event-sport-type">
-            {{ event.sport_type_detail?.name }}
+          <div class="event-meta">
+            <span class="event-sport-type">{{ event.sport_type_detail?.name }}</span>
+            <span class="event-difficulty" [class]="event.difficulty">
+              {{ getDifficultyLabel(event.difficulty) }}
+            </span>
           </div>
           <h3 class="event-title">{{ event.title }}</h3>
           <div class="event-details">

@@ -1,3 +1,15 @@
+:host {
+  display: block;
+  min-height: calc(100vh - 70px);
+  background-color: #f1f5f9; 
+  background-image:
+    radial-gradient(circle at 10% 10%, rgba(102, 126, 234, 0.25) 0%, transparent 45%),
+    radial-gradient(circle at 90% 15%, rgba(250, 112, 154, 0.20) 0%, transparent 45%),
+    radial-gradient(circle at 50% 85%, rgba(118, 75, 162, 0.15) 0%, transparent 55%),
+    linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.3) 100%);
+  background-attachment: fixed;
+}
+
 .create-event-container {
   max-width: 800px;
   margin: 0 auto;

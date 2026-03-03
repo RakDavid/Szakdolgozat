@@ -6,6 +6,7 @@ import { EventService } from '../../../core/services/event.service';
 import { MapComponent } from '../../../shared/map/map.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { SportEvent, EventParticipant } from '../../../core/models/models';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-event-detail',
@@ -41,7 +42,8 @@ export class EventDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private eventService: EventService,
-    private authService: AuthService
+    private authService: AuthService,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -61,14 +63,12 @@ export class EventDetailComponent implements OnInit {
       next: (event) => {
         event.latitude = Number(event.latitude);
         event.longitude = Number(event.longitude);
-        console.log(this.participants);
         this.event = event;
         this.isCreator = event.creator === this.currentUserId;
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error loading event', error);
-        this.errorMessage = 'Az esemény betöltése sikertelen.';
+        this.toastService.showError('Az esemény betöltése sikertelen.');
         this.loading = false;
       }
     });
@@ -94,22 +94,18 @@ export class EventDetailComponent implements OnInit {
     if (!this.event) return;
 
     this.joining = true;
-    this.errorMessage = '';
 
     this.eventService.joinEvent(this.event.id, { notes: this.joinNotes }).subscribe({
       next: (response) => {
-        this.successMessage = 'Sikeresen jelentkeztél az eseményre!';
+        this.toastService.showSuccess('Sikeresen jelentkeztél az eseményre!');
         this.showJoinForm = false;
         this.joinNotes = '';
         this.loadEventDetails(this.event!.id);
         this.loadParticipants(this.event!.id);
         this.joining = false;
-        
-        setTimeout(() => this.successMessage = '', 3000);
       },
       error: (error) => {
-        console.error('Error joining event', error);
-        this.errorMessage = error.error?.error || 'Sikertelen jelentkezés.';
+        this.toastService.showError(error.error?.error || 'Sikertelen jelentkezés.'); 
         this.joining = false;
       }
     });
@@ -123,20 +119,16 @@ export class EventDetailComponent implements OnInit {
     }
 
     this.leaving = true;
-    this.errorMessage = '';
 
     this.eventService.leaveEvent(this.event.id).subscribe({
       next: () => {
-        this.successMessage = 'Sikeresen lemondtad a részvételt.';
+        this.toastService.showSuccess('Sikeresen lemondtad a részvételt.'); 
         this.loadEventDetails(this.event!.id);
         this.loadParticipants(this.event!.id);
         this.leaving = false;
-        
-        setTimeout(() => this.successMessage = '', 3000);
       },
       error: (error) => {
-        console.error('Error leaving event', error);
-        this.errorMessage = error.error?.error || 'Sikertelen lemondás.';
+        this.toastService.showError(error.error?.error || 'Sikertelen lemondás.');
         this.leaving = false;
       }
     });
@@ -157,11 +149,11 @@ export class EventDetailComponent implements OnInit {
 
     this.eventService.deleteEvent(this.event.id).subscribe({
       next: () => {
+        this.toastService.showSuccess('Az esemény sikeresen törölve lett.'); 
         this.router.navigate(['/my-events']);
       },
       error: (error) => {
-        console.error('Error deleting event', error);
-        this.errorMessage = 'Az esemény törlése sikertelen.';
+        this.toastService.showError('Az esemény törlése sikertelen.'); 
       }
     });
   }
@@ -199,11 +191,10 @@ export class EventDetailComponent implements OnInit {
     this.eventService.manageParticipant(this.event.id, participantId, { status: 'confirmed' })
       .subscribe({
         next: () => {
-          this.successMessage = 'Résztvevő jóváhagyva!';
+          this.toastService.showSuccess('Résztvevő jóváhagyva!');
           this.loadParticipants(this.event!.id);
-          setTimeout(() => this.successMessage = '', 3000);
         },
-        error: (err) => this.errorMessage = 'Hiba a jóváhagyás során.'
+        error: (err) => this.toastService.showError('Hiba a jóváhagyás során.') 
       });
   }
 
@@ -213,11 +204,10 @@ export class EventDetailComponent implements OnInit {
     this.eventService.manageParticipant(this.event.id, participantId, { status: 'rejected' })
       .subscribe({
         next: () => {
-          this.successMessage = 'Kérés elutasítva.';
+          this.toastService.showSuccess('Kérés elutasítva.'); 
           this.loadParticipants(this.event!.id);
-          setTimeout(() => this.successMessage = '', 3000);
         },
-        error: (err) => this.errorMessage = 'Hiba az elutasítás során.'
+        error: (err) => this.toastService.showError('Hiba az elutasítás során.')
       });
   }
 
@@ -354,25 +344,21 @@ export class EventDetailComponent implements OnInit {
     if (this.selectedRating < 1 || this.selectedRating > 5) return;
     
     this.isSubmittingRating = true;
-    this.ratingError = '';
     
     this.eventService.rateEvent(this.event.id, this.selectedRating, this.ratingFeedback).subscribe({
       next: () => {
         this.isSubmittingRating = false;
-        this.ratingSuccess = true;
+        this.toastService.showSuccess('Köszönjük az értékelést!'); 
         
         this.loadEventDetails(this.event!.id);
         this.loadParticipants(this.event!.id);
         
         this.selectedRating = 0;
         this.ratingFeedback = '';
-        
-        setTimeout(() => this.ratingSuccess = false, 3000);
       },
       error: (err) => {
         this.isSubmittingRating = false;
-        console.error('Értékelési hiba:', err.error);
-        this.ratingError = err.error?.detail || err.error?.error || 'Hiba történt az értékelés során.';
+        this.toastService.showError(err.error?.detail || err.error?.error || 'Hiba történt az értékelés során.'); 
       }
     });
   }

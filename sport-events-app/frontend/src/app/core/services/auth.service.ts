@@ -23,7 +23,6 @@ export class AuthService {
     private http: HttpClient,
     private router: Router
   ) {
-    // Alkalmazás indításakor ellenőrizzük, van-e mentett felhasználó
     this.loadUserFromStorage();
   }
 
@@ -146,11 +145,7 @@ export class AuthService {
    * Auth válasz kezelése
    */
   private handleAuthResponse(response: AuthResponse): void {
-    // Tokenek mentése
-    console.log('Saving tokens:', response.tokens);
     this.saveTokens(response.tokens.access, response.tokens.refresh);
-    
-    // Felhasználó mentése
     this.currentUserSubject.next(response.user);
     localStorage.setItem('currentUser', JSON.stringify(response.user));
   }

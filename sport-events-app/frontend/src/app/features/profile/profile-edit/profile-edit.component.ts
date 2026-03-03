@@ -8,6 +8,7 @@ import { User, UserUpdate, SportType, UserSportPreference, CreateUserSportPrefer
 import { GeocodingService, GeocodingResult } from '../../../core/services/geocoding.service';
 import { SportPreferencesComponent } from '../sport-preferences/sport-preferences.component';
 import { AuthService } from '../../../core/services/auth.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-profile-edit',
@@ -50,7 +51,8 @@ export class ProfileEditComponent implements OnInit {
     private router: Router,
     private geocodingService: GeocodingService,
     private route: ActivatedRoute,
-    private authService: AuthService
+    private authService: AuthService,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -73,10 +75,15 @@ export class ProfileEditComponent implements OnInit {
   loadSportTypes(): void {
     this.sportTypeService.getAllSportTypes().subscribe({
       next: (types) => {
-        this.sportTypes = types;
+        if (Array.isArray(types)) {
+          this.sportTypes = types;
+        } else {
+          this.sportTypes = (types as any).results || [];
+        }
       },
       error: (error) => {
-        console.error('Error loading sport types', error);
+        console.error('Nem sikerült a sportágak betöltése', error);
+        this.sportTypes = []; 
       }
     });
   }
@@ -89,8 +96,7 @@ export class ProfileEditComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error loading profile', error);
-        this.errorMessage = 'Profil betöltése sikertelen.';
+        this.toastService.showError('Profil betöltése sikertelen.');
         this.loading = false;
       }
     });
@@ -102,7 +108,7 @@ export class ProfileEditComponent implements OnInit {
         this.sportPreferences = preferences;
       },
       error: (error) => {
-        console.error('Error loading sport preferences', error);
+        console.error('Nem sikerült a sportág prefeenciák betöltése', error);
       }
     });
   }
@@ -177,7 +183,6 @@ export class ProfileEditComponent implements OnInit {
           this.geocodingService.reverseGeocode(lat, lng).subscribe({
             next: (address) => {
               const addressParts = address.split(',');
-              
               const detailedAddress = addressParts.slice(0, 3).join(',').trim() || 'Saját helyzet';
               
               this.profileForm.patchValue({
@@ -192,13 +197,12 @@ export class ProfileEditComponent implements OnInit {
           });
         },
         (error) => {
-          console.error('Error getting location', error);
           this.profileForm.patchValue({ default_location_name: '' });
-          alert('Nem sikerült lekérni a helyzeted. Kérlek, engedélyezd a helyadatokat a böngészőben!');
+          this.toastService.showError('Nem sikerült lekérni a helyzeted. Kérlek, engedélyezd a helyadatokat a böngészőben!');
         }
       );
     } else {
-      alert('A böngésződ nem támogatja a helymeghatározást.');
+      this.toastService.showError('A böngésződ nem támogatja a helymeghatározást.');
     }
   }
 
@@ -209,15 +213,11 @@ export class ProfileEditComponent implements OnInit {
       this.userService.deleteProfile().subscribe({
         next: () => {
           this.authService.logout(); 
-
           this.router.navigate(['/']);
-          
-          alert('A profilod sikeresen törlésre került.');
+          this.toastService.showSuccess('A profilod sikeresen törlésre került.');
         },
         error: (err) => {
-          console.error('Hiba a profil törlésekor:', err);
-          alert('Hiba történt a profil törlése során. Kérjük, próbáld újra később.');
-        }
+          this.toastService.showError('Hiba történt a profil törlése során. Kérjük, próbáld újra később.');        }
       });
     }
   }
@@ -226,7 +226,7 @@ export class ProfileEditComponent implements OnInit {
     const address = this.profileForm.get('default_location_name')?.value;
     
     if (!address || address.trim().length < 3) {
-      alert('Kérlek, adj meg legalább 3 karaktert a kereséshez!');
+      this.toastService.showError('Kérlek, adj meg legalább 3 karaktert a kereséshez!');
       return;
     }
 
@@ -238,12 +238,11 @@ export class ProfileEditComponent implements OnInit {
         this.searchingLocation = false;
         
         if (results.length === 0) {
-          alert('Nem találtunk eredményt ehhez a címhez. Próbálj meg pontosabb címet megadni!');
+          this.toastService.showError('Nem találtunk eredményt ehhez a címhez. Próbálj meg pontosabb címet megadni!');
         }
       },
       error: (error) => {
-        console.error('Geocoding error', error);
-        alert('Hiba történt a keresés során. Próbáld újra!');
+        this.toastService.showError('Hiba történt a keresés során. Próbáld újra!');
         this.searchingLocation = false;
       }
     });
@@ -268,6 +267,7 @@ export class ProfileEditComponent implements OnInit {
 
   onSubmit(): void {
     if (this.profileForm.invalid) {
+      this.toastService.showError('Kérlek, töltsd ki helyesen a kötelező mezőket!');
       Object.keys(this.profileForm.controls).forEach(key => {
         this.profileForm.get(key)?.markAsTouched();
       });
@@ -275,8 +275,6 @@ export class ProfileEditComponent implements OnInit {
     }
 
     this.saving = true;
-    this.errorMessage = '';
-    this.successMessage = '';
 
     const formData: any = { ...this.profileForm.value };
     
@@ -302,19 +300,18 @@ export class ProfileEditComponent implements OnInit {
 
     this.userService.updateUserProfile(formData).subscribe({
       next: (user) => {
-        this.successMessage = 'Profil sikeresen frissítve!';
+        this.toastService.showSuccess('Profil sikeresen frissítve!');
         this.saving = false;
         
         this.router.navigate(['/profile']);
       },
       error: (error) => {
-        console.error('Error updating profile', error);
-        
+        console.error('Hiba történt a profil frissítése közben', error);
         if (error.error) {
           console.error('Django hiba részletei:', error.error);
         }
         
-        this.errorMessage = 'Profil frissítése sikertelen. Próbáld újra!';
+        this.toastService.showError('Profil frissítése sikertelen. Próbáld újra!');
         this.saving = false;
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
@@ -340,6 +337,7 @@ export class ProfileEditComponent implements OnInit {
 
  onPasswordSubmit(): void {
     if (this.passwordForm.invalid) {
+      this.toastService.showError('Kérlek, ellenőrizd a megadott jelszavakat!');
       Object.keys(this.passwordForm.controls).forEach(key => {
         this.passwordForm.get(key)?.markAsTouched();
       });
@@ -347,8 +345,6 @@ export class ProfileEditComponent implements OnInit {
     }
 
     this.passwordSaving = true;
-    this.passwordErrorMessage = '';
-    this.passwordSuccessMessage = '';
 
     const payload = {
       old_password: this.passwordForm.value.old_password,
@@ -360,13 +356,16 @@ export class ProfileEditComponent implements OnInit {
       next: () => {
         this.passwordSaving = false;
         this.passwordForm.reset(); 
+        this.toastService.showSuccess('A jelszavad sikeresen megváltozott!');
         this.router.navigate(['/profile']);
       },
       error: (error) => {
         this.passwordSaving = false;
-        this.passwordErrorMessage = error.error?.old_password 
+        const errMsg = error.error?.old_password 
           ? 'A megadott jelenlegi jelszó helytelen!' 
-          : 'Hiba történt';
+          : 'Hiba történt a jelszó módosításakor!';
+        
+        this.toastService.showError(errMsg);
       }
     });
   }

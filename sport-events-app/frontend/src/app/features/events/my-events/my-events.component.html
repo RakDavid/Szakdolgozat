@@ -62,8 +62,13 @@
               [markers]="[{lat: event.latitude, lng: event.longitude, popup: event.location_name}]"
             ></app-map>
           </div>
-          <div class="event-status-badge" [class]="event.status">
-            {{ getStatusLabel(event.status) }}
+          <div class="card-top-right-badges">
+            <div class="event-badge" [class.free]="event.is_free">
+              {{ event.is_free ? 'Ingyenes' : (event.price + ' Ft') }}
+            </div>
+            <div class="badge-status-small" [class]="event.status">
+              {{ getStatusLabel(event.status) }}
+            </div>
           </div>
         </div>
 
@@ -124,7 +129,14 @@
               [markers]="[{lat: event.latitude, lng: event.longitude, popup: event.location_name}]"
             ></app-map>
           </div>
-          <div class="event-status-badge" [class]="event.status">{{ getStatusLabel(event.status) }}</div>
+          <div class="card-top-right-badges">
+            <div class="event-badge" [class.free]="event.is_free">
+              {{ event.is_free ? 'Ingyenes' : (event.price + ' Ft') }}
+            </div>
+            <div class="badge-status-small" [class]="event.status">
+              {{ getStatusLabel(event.status) }}
+            </div>
+          </div>
           <div *ngIf="event.user_participation_status" class="participation-badge" [class]="event.user_participation_status.status">
             {{ event.user_participation_status.status === 'confirmed' ? '✓ Megerősítve' :
                event.user_participation_status.status === 'pending' ? '⏳ Függőben' :

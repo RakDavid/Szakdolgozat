@@ -69,7 +69,7 @@ export class HomeComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error loading events', error);
+        console.error('Hiba az események betöltése közben', error);
         this.loading = false;
       }
     });
@@ -82,14 +82,12 @@ export class HomeComponent implements OnInit {
         this.recommendedEvents = events.slice(0, 6);
         this.loading = false;
         
-        // Ha nincs elég ajánlott esemény, töltsük fel közelgőkkel
         if (this.recommendedEvents.length === 0) {
           this.loadUpcomingEvents();
         }
       },
       error: (error) => {
-        console.error('Error loading recommended events', error);
-        // Hiba esetén fallback: közelgő események
+        console.error('Hiba az ajánlott események betöltése közben', error);
         this.loadUpcomingEvents();
       }
     });
@@ -118,5 +116,24 @@ export class HomeComponent implements OnInit {
       hour: '2-digit', 
       minute: '2-digit' 
     });
+  }
+
+  getStatusLabel(status: string): string {
+    const labels: { [key: string]: string } = {
+      'upcoming': 'Közelgő',
+      'ongoing': 'Folyamatban',
+      'completed': 'Befejezett',
+      'cancelled': 'Törölve'
+    };
+    return labels[status] || status;
+  }
+
+  getDifficultyLabel(difficulty: string): string {
+    const labels: { [key: string]: string } = {
+      'easy': 'Kezdő',
+      'medium': 'Közepes',
+      'hard': 'Haladó'
+    };
+    return labels[difficulty] || difficulty;
   }
 }

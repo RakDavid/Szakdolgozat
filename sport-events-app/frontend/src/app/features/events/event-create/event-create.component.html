@@ -8,11 +8,6 @@
     </p>
   </div>
 
-  <!-- Error Message -->
-  <div *ngIf="errorMessage" class="alert alert-error">
-    {{ errorMessage }}
-  </div>
-
   <!-- Form -->
   <form [formGroup]="eventForm" (ngSubmit)="onSubmit()" class="event-form">
     <!-- Basic Info Section -->
@@ -267,7 +262,7 @@
     <!-- Submit Buttons -->
     <div class="form-actions">
       <button type="submit" class="btn btn-primary btn-large" [disabled]="loading || eventForm.invalid">
-        <span *ngIf="!loading">{{ isEditMode ? '💾 Változtatások mentése' : '✅  Esemény létrehozása' }}</span>
+        <span *ngIf="!loading">{{ isEditMode ? '💾 Változtatások mentése' : ' Esemény létrehozása' }}</span>
         <span *ngIf="loading">Létrehozás...</span>
       </button>
       <button type="button" class="btn btn-outline btn-large" routerLink="/events" [disabled]="loading">

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-register',
@@ -20,16 +21,15 @@ export class RegisterComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
-    // Ha már be van jelentkezve, átirányítjuk
     if (this.authService.isAuthenticated()) {
       this.router.navigate(['/']);
     }
 
-    // Form inicializálása
     this.registerForm = this.fb.group({
       username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
       email: ['', [Validators.required, Validators.email]],
@@ -43,7 +43,6 @@ export class RegisterComponent implements OnInit {
     });
   }
 
-  // Custom validator: jelszavak egyezésének ellenőrzése
   passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
     const password = control.get('password');
     const password2 = control.get('password2');
@@ -61,7 +60,6 @@ export class RegisterComponent implements OnInit {
 
   onSubmit(): void {
     if (this.registerForm.invalid) {
-      // Összes mező megérintése, hogy megjelenjenek a hibaüzenetek
       Object.keys(this.registerForm.controls).forEach(key => {
         this.registerForm.get(key)?.markAsTouched();
       });
@@ -74,14 +72,11 @@ export class RegisterComponent implements OnInit {
 
     this.authService.register(this.registerForm.value).subscribe({
       next: (response) => {
-        console.log('Registration successful', response);
         this.router.navigate(['/']);
       },
       error: (error) => {
-        console.error('Registration error', error);
         
         if (error.error) {
-          // Backend specifikus hibák kezelése
           if (typeof error.error === 'string') {
             this.errorMessage = error.error;
           } else if (error.error.email) {
@@ -91,10 +86,10 @@ export class RegisterComponent implements OnInit {
           } else if (error.error.password) {
             this.errors.password = error.error.password;
           } else {
-            this.errorMessage = 'A regisztráció sikertelen. Kérlek, próbáld újra.';
+            this.toastService.showError('A regisztráció sikertelen. Kérlek, próbáld újra.');
           }
         } else {
-          this.errorMessage = 'A regisztráció sikertelen. Kérlek, próbáld újra.';
+          this.toastService.showError('A regisztráció sikertelen. Kérlek, próbáld újra.');
         }
         
         this.loading = false;
