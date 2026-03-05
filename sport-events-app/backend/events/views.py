@@ -62,7 +62,7 @@ class SportEventListCreateView(generics.ListCreateAPIView):
         return SportEventListSerializer
     
     def get_queryset(self):
-        queryset = SportEvent.objects.filter(is_public=True).select_related(
+        queryset = SportEvent.objects.filter(is_public=True).exclude(status='cancelled').select_related(
             'sport_type', 'creator'
         ).prefetch_related('images', 'participants')
         
@@ -191,7 +191,6 @@ class JoinEventView(APIView):
     """
     Csatlakozás eseményhez
     POST /api/events/{id}/join/
-    Body: {"notes": "..."} (opcionális)
     """
     permission_classes = [IsAuthenticated]
 
@@ -207,17 +206,29 @@ class JoinEventView(APIView):
         )
 
         if serializer.is_valid():
-            participant = EventParticipant.objects.create(
+            notes = serializer.validated_data.get('notes', '')
+            extra_guests = serializer.validated_data.get('extra_guests', 0)
+            
+            initial_status = 'pending' if event.requires_approval else 'confirmed'
+
+            participant, created = EventParticipant.objects.update_or_create(
                 event=event,
                 user=request.user,
-                notes=serializer.validated_data.get('notes', '')
+                defaults={
+                    'status': initial_status,
+                    'notes': notes,
+                    'extra_guests': extra_guests,
+                    'joined_at': timezone.now(),
+                    'confirmed_at': timezone.now() if initial_status == 'confirmed' else None
+                }
             )
 
             if event.requires_approval:
                 notify_join_request(
                     event=event,
                     participant_user=request.user,
-                    notes=serializer.validated_data.get('notes', '')
+                    notes=notes,
+                    extra_guests=extra_guests
                 )
 
             return Response({
@@ -226,7 +237,6 @@ class JoinEventView(APIView):
             }, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class LeaveEventView(APIView):
     """

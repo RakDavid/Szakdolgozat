@@ -2,9 +2,47 @@ from rest_framework import serializers
 from django.utils import timezone
 from datetime import timedelta
 from .models import SportEvent, EventParticipant, EventImage
+from accounts.models import UserSportPreference
 from accounts.serializers import UserSerializer, SportTypeSerializer
+from notifications.services import notify_recommended_event
 from math import radians, sin, cos, sqrt, atan2
 
+def trigger_recommendation_notifications(event):
+    """
+    Kikeresi azokat a felhasználókat, akiknek a preferenciái és a helyzete
+    passzol az új eseményhez, és értesíti őket.
+    """
+    matching_preferences = UserSportPreference.objects.filter(
+        sport_type=event.sport_type
+    ).select_related('user')
+    
+    for pref in matching_preferences:
+        user = pref.user
+        
+        if user == event.creator:
+            continue
+            
+        if user.default_latitude and user.default_longitude and event.latitude and event.longitude:
+            try:
+                R = 6371 
+                lat1 = radians(float(user.default_latitude))
+                lon1 = radians(float(user.default_longitude))
+                lat2 = radians(float(event.latitude))
+                lon2 = radians(float(event.longitude))
+                
+                dlat = lat2 - lat1
+                dlon = lon2 - lon1
+                
+                a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+                c = 2 * atan2(sqrt(a), sqrt(1-a))
+                distance = R * c
+
+                radius = user.default_search_radius or 20
+                if distance <= radius:
+                    notify_recommended_event(user, event)
+                    
+            except (ValueError, TypeError):
+                continue
 
 class EventImageSerializer(serializers.ModelSerializer):
     """
@@ -33,7 +71,8 @@ class EventParticipantSerializer(serializers.ModelSerializer):
             'confirmed_at',
             'notes',
             'rating',
-            'feedback'
+            'feedback',
+            'extra_guests'
         ]
         read_only_fields = ['id', 'joined_at', 'confirmed_at']
 
@@ -84,7 +123,8 @@ class SportEventListSerializer(serializers.ModelSerializer):
             'primary_image',
             'distance',
             'recommendation_score',
-            'created_at'
+            'created_at',
+            'reserved_spots'
         ]
         read_only_fields = ['id', 'created_at', 'creator']
     
@@ -98,8 +138,8 @@ class SportEventListSerializer(serializers.ModelSerializer):
         return None
     
     def get_participants_count(self, obj):
-        """Megerősített résztvevők száma"""
-        return obj.participants.filter(status='confirmed').count()
+        """Megerősített résztvevők száma (beleértve a szervező által foglalt helyeket is)"""
+        return obj.participants_count
     
     def get_distance(self, obj):
         """
@@ -197,7 +237,9 @@ class SportEventDetailSerializer(serializers.ModelSerializer):
             'user_participation_status',
             'created_at',
             'updated_at',
-            'average_rating'
+            'average_rating',
+            'participants_count',
+            'reserved_spots'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'creator']
     
@@ -260,7 +302,8 @@ class SportEventCreateSerializer(serializers.ModelSerializer):
             'requires_approval',
             'is_free',
             'price',
-            'notes'
+            'notes',
+            'reserved_spots'
         ]
     
     def validate_start_date_time(self, value):
@@ -309,6 +352,12 @@ class SportEventCreateSerializer(serializers.ModelSerializer):
             confirmed_at=timezone.now()
         )
         
+       
+        if event.is_public:
+            try:
+                trigger_recommendation_notifications(event)
+            except Exception as e:
+                print(f"Hiba az ajánlások kiküldésekor: {e}")     
         return event
     
     def update(self, instance, validated_data):
@@ -340,16 +389,26 @@ class JoinEventSerializer(serializers.Serializer):
         max_length=500,
         help_text="Opcionális üzenet a szervezőnek"
     )
+
+    extra_guests = serializers.IntegerField(
+        required=False,
+        default=0,
+        min_value=0
+    )
     
     def validate(self, attrs):
-        """Csatlakozás validálása"""
         event = self.context['event']
         user = self.context['request'].user
+        extra_guests = attrs.get('extra_guests', 0)
         
         can_join, message = event.can_user_join(user)
         if not can_join:
             raise serializers.ValidationError(message)
-        
+            
+        total_joining = 1 + extra_guests
+        if event.available_spots < total_joining:
+            raise serializers.ValidationError(f"Nincs elég hely! Már csak {event.available_spots} szabad hely maradt.")
+            
         return attrs
 
 

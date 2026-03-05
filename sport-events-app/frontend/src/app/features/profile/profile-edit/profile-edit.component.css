@@ -1,3 +1,15 @@
+:host {
+  display: block;
+  min-height: calc(100vh - 70px);
+  background-color: #f1f5f9; 
+  background-image:
+    radial-gradient(circle at 10% 10%, rgba(102, 126, 234, 0.25) 0%, transparent 45%),
+    radial-gradient(circle at 90% 15%, rgba(250, 112, 154, 0.20) 0%, transparent 45%),
+    radial-gradient(circle at 50% 85%, rgba(118, 75, 162, 0.15) 0%, transparent 55%),
+    linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.3) 100%);
+  background-attachment: fixed;
+}
+
 .profile-edit-container {
   max-width: 800px;
   margin: 0 auto;
@@ -50,17 +62,36 @@
 
 .edit-tabs {
   display: flex;
-  gap: 10px;
+  width: 100%; 
+  gap: 0;
   margin-bottom: 30px;
-  border-bottom: 2px solid #eee;
-  padding-bottom: 10px;
+  border-bottom: 2px solid #e0e0e0;
 }
+
 .tab-btn {
-  background: none; border: none; font-size: 16px; font-weight: 600; color: #888;
-  padding: 10px 20px; cursor: pointer; border-radius: 8px; transition: 0.3s;
+  flex: 1;
+  padding: 15px 10px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #666;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-bottom: -2px;
+  text-align: center; 
+  white-space: nowrap;
 }
-.tab-btn:hover { background: #f5f5f5; }
-.tab-btn.active { color: #667eea; background: #f0f3ff; }
+
+.tab-btn:hover { 
+  color: #667eea;
+}
+
+.tab-btn.active { 
+  color: #667eea;
+  border-bottom-color: #667eea;
+}
 
 .form-section {
   background: white;
@@ -309,68 +340,94 @@ textarea.form-control {
   cursor: not-allowed;
 }
 
-/* --- Veszélyzóna --- */
 .danger-zone-card {
-  margin-top: 40px;
-  background-color: #fff5f5;
-  border: 1px solid #fc8181;
-  border-radius: 12px;
+  margin-top: 50px;
+  background: #fff;
+  border-radius: 16px;
   overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  border: 1px solid #ffe5e5;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.danger-zone-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 6px;
+  background: linear-gradient(to bottom, #ff4d4f, #c53030);
+}
+
+.danger-zone-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 35px rgba(197, 48, 48, 0.08);
 }
 
 .danger-header {
-  background-color: #fed7d7;
-  padding: 15px 20px;
-  border-bottom: 1px solid #feb2b2;
+  padding: 18px 25px;
+  background: #fff5f5;
+  border-bottom: 1px solid #ffe3e3;
 }
 
 .danger-header h3 {
   margin: 0;
   color: #c53030;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
 }
 
 .danger-content {
-  padding: 20px;
+  padding: 25px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 25px;
 }
 
 .danger-info h4 {
-  margin: 0 0 5px 0;
-  color: #2d3748;
+  margin: 0 0 8px 0;
+  color: #1a202c;
   font-weight: 600;
+  font-size: 1.05rem;
 }
 
 .danger-info p {
   margin: 0;
   color: #718096;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   max-width: 600px;
+  line-height: 1.5;
 }
 
 .btn-outline-danger {
   background: white;
   border: 2px solid #e53e3e;
   color: #e53e3e;
-  padding: 10px 20px;
+  padding: 12px 22px;
   font-weight: 700;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
 }
 
 .btn-outline-danger:hover {
   background: #e53e3e;
   color: white;
-  box-shadow: 0 4px 10px rgba(229, 62, 62, 0.3);
+  box-shadow: 0 6px 18px rgba(229, 62, 62, 0.35);
+  transform: translateY(-2px);
+}
+
+.btn-outline-danger:active {
+  transform: scale(0.96);
 }
 
 /* Loading */
@@ -390,6 +447,67 @@ textarea.form-control {
   border-top: 4px solid #667eea;
   border-radius: 50%;
   animation: spin 1s linear infinite;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.custom-modal {
+  background: white;
+  border-radius: 16px;
+  padding: 30px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: slideInUp 0.3s ease-out;
+  text-align: center;
+}
+
+.modal-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 10px;
+}
+
+.modal-message {
+  color: #64748b;
+  font-size: 15px;
+  margin-bottom: 25px;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.modal-actions .btn {
+  flex: 1;
+}
+
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes spin {

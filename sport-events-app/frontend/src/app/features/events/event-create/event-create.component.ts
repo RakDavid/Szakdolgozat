@@ -89,12 +89,26 @@ export class EventCreateComponent implements OnInit {
       longitude: [null],
       max_participants: [10, [Validators.required, Validators.min(2)]],
       min_participants: [2, [Validators.required, Validators.min(1)]],
+      has_friends: [false], 
+      friends_count: [null],
       difficulty: ['medium', Validators.required],
       is_public: [true],
       requires_approval: [false],
       is_free: [true],
       price: [null],
       notes: ['']
+    });
+
+    this.eventForm.get('has_friends')?.valueChanges.subscribe(hasFriends => {
+      const friendsControl = this.eventForm.get('friends_count');
+      if (hasFriends) {
+        friendsControl?.setValidators([Validators.required, Validators.min(1)]);
+        if (!friendsControl?.value) friendsControl?.setValue(1);
+      } else {
+        friendsControl?.clearValidators();
+        friendsControl?.setValue(null);
+      }
+      friendsControl?.updateValueAndValidity();
     });
 
     this.eventForm.get('is_free')?.valueChanges.subscribe(isFree => {
@@ -113,10 +127,11 @@ export class EventCreateComponent implements OnInit {
     return this.eventForm.controls;
   }
 
-  getCurrentLocation(): void {
+getCurrentLocation(): void {
     if (navigator.geolocation) {
       this.useCurrentLocation = true;
       this.searchingLocation = true;
+      
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const lat = position.coords.latitude;
@@ -126,9 +141,13 @@ export class EventCreateComponent implements OnInit {
 
           this.geocodingService.reverseGeocode(lat, lng).subscribe({
             next: (address) => {
-              const streetPart = address.split(',')[0]?.trim() || 'Jelenlegi helyszín';
+              const addressParts = address.split(',');
+              const streetPart = addressParts.length > 1 
+                ? addressParts[1].trim() 
+                : addressParts[0].trim();
+
               this.eventForm.patchValue({
-                location_name: streetPart,
+                location_name: streetPart || 'Jelenlegi helyszín',
                 location_address: address
               });
               this.searchingLocation = false;
@@ -143,7 +162,8 @@ export class EventCreateComponent implements OnInit {
           this.toastService.showError('Nem sikerült lekérni a helyzeted. Kérlek, add meg manuálisan!');
           this.useCurrentLocation = false;
           this.searchingLocation = false;
-        }
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 } 
       );
     } else {
       this.toastService.showError('A böngésződ nem támogatja a helymeghatározást.');
@@ -164,13 +184,12 @@ export class EventCreateComponent implements OnInit {
   }
 
   searchLocationByAddress(): void {
-    const address = this.eventForm.get('location_address')?.value;
     const locationName = this.eventForm.get('location_name')?.value;
     
-    const searchQuery = address || locationName;
+    const searchQuery = locationName;
     
     if (!searchQuery || searchQuery.trim().length < 3) {
-      this.toastService.showError('Kérlek, adj meg legalább 3 karaktert a kereséshez!');
+      this.toastService.showError('Kérlek, adj meg legalább 3 karaktert a "Helyszín neve" mezőben a kereséshez!');
       return;
     }
 
@@ -182,7 +201,7 @@ export class EventCreateComponent implements OnInit {
         this.searchingLocation = false;
         
         if (results.length === 0) {
-          this.toastService.showError('Nem találtunk eredményt ehhez a címhez. Próbálj meg pontosabb címet megadni!');
+          this.toastService.showError('Nem találtunk eredményt ehhez a névhez. Próbáld meg pontosítani (pl. város hozzáadásával)!');
         }
       },
       error: (error) => {
@@ -195,13 +214,21 @@ export class EventCreateComponent implements OnInit {
 
   selectGeocodingResult(result: GeocodingResult): void {
     this.selectedLocation = { lat: result.lat, lng: result.lng };
+    
+    const currentTypedName = this.eventForm.get('location_name')?.value;
+    
     this.eventForm.patchValue({
       latitude: result.lat,
       longitude: result.lng,
-      location_address: result.display_name
+      location_address: result.display_name,
+
+      location_name: result.place_name ? result.place_name : currentTypedName
     });
+    
     this.showGeocodingResults = false;
     this.geocodingResults = [];
+    
+    this.toastService.showSuccess('Helyszín és pontos cím sikeresen beállítva!');
   }
 
   closeGeocodingResults(): void {
@@ -211,12 +238,16 @@ export class EventCreateComponent implements OnInit {
   loadEventData(id: number): void {
     this.loading = true;
     this.eventService.getEventById(id).subscribe({
-      next: (event) => {
+      next: (event: any) => {
         const dateObj = new Date(event.start_date_time);
         const pad = (n: number) => n.toString().padStart(2, '0');
         const formattedDate = `${dateObj.getFullYear()}-${pad(dateObj.getMonth() + 1)}-${pad(dateObj.getDate())}T${pad(dateObj.getHours())}:${pad(dateObj.getMinutes())}`;
 
         this.selectedLocation = { lat: Number(event.latitude), lng: Number(event.longitude) };
+
+        const reservedSpots = event.reserved_spots || 1;
+        const hasFriends = reservedSpots > 1;
+        const friendsCount = hasFriends ? (reservedSpots - 1) : null;
 
         this.eventForm.patchValue({
           title: event.title,
@@ -230,6 +261,8 @@ export class EventCreateComponent implements OnInit {
           longitude: Number(event.longitude),
           max_participants: event.max_participants,
           min_participants: event.min_participants,
+          has_friends: hasFriends,
+          friends_count: friendsCount,
           difficulty: event.difficulty,
           is_public: event.is_public,
           requires_approval: event.requires_approval,
@@ -258,7 +291,19 @@ export class EventCreateComponent implements OnInit {
 
     this.loading = true;
     this.errors = {};
-    const formData: CreateSportEvent = this.eventForm.value;
+    const formData: any = { ...this.eventForm.value };
+    const hasFriends = formData.has_friends;
+    const friendsCount = formData.friends_count || 0;
+    formData.reserved_spots = hasFriends ? (1 + friendsCount) : 1;
+    delete formData.has_friends;
+    delete formData.friends_count;
+
+    if (formData.reserved_spots > formData.max_participants) {
+      this.toastService.showError('A veled érkezők száma nem lehet nagyobb a maximális létszámnál!');
+      this.loading = false; 
+      return; 
+    }
+
     if (this.isEditMode && this.eventId) {
       this.eventService.updateEvent(this.eventId, formData).subscribe({
         next: () => {

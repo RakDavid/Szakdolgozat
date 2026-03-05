@@ -2,6 +2,7 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from accounts.models import User, SportType
+from django.db.models import Sum
 
 
 class SportEvent(models.Model):
@@ -102,6 +103,13 @@ class SportEvent(models.Model):
         verbose_name="Minimum résztvevők száma",
         help_text="Hány fő alatt nem jön létre az esemény"
     )
+
+    reserved_spots = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name="Foglalt helyek száma",
+        help_text="Hány barátoddal szervezed az eseményt?"
+    )
     
     # Nehézség és egyéb
     difficulty = models.CharField(
@@ -170,15 +178,26 @@ class SportEvent(models.Model):
         return f"{self.title} - {self.start_date_time.strftime('%Y-%m-%d %H:%M')}"
     
     @property
+    def participants_count(self):
+        """Hányan vesznek részt az eseményen összesen"""
+        confirmed_qs = self.participants.filter(status='confirmed')
+        base_count = confirmed_qs.count()
+    
+        extra_guests_sum = confirmed_qs.aggregate(total=Sum('extra_guests'))['total'] or 0
+        
+        creator_friends = max(0, self.reserved_spots - 1)
+        
+        return base_count + extra_guests_sum + creator_friends
+
+    @property
     def is_full(self):
         """Ellenőrzi, hogy betelt-e az esemény"""
-        return self.participants.filter(status='confirmed').count() >= self.max_participants
+        return self.participants_count >= self.max_participants
     
     @property
     def available_spots(self):
         """Hány szabad hely van még"""
-        confirmed_count = self.participants.filter(status='confirmed').count()
-        return max(0, self.max_participants - confirmed_count)
+        return max(0, self.max_participants - self.participants_count)
     
     @property
     def is_past(self):
@@ -193,7 +212,7 @@ class SportEvent(models.Model):
             return False, "Az esemény már elmúlt"
         if self.status != 'upcoming':
             return False, "Az esemény nem elérhető"
-        if self.participants.filter(user=user).exists():
+        if self.participants.filter(user=user, status__in=['pending', 'confirmed']).exists():
             return False, "Már jelentkeztél erre az eseményre"
         return True, "Jelentkezhetsz"
 
@@ -261,6 +280,12 @@ class EventParticipant(models.Model):
         null=True,
         verbose_name="Visszajelzés"
     )
+
+    extra_guests = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name="Plusz vendégek száma"
+    )
     
     class Meta:
         verbose_name = "Résztvevő"
@@ -272,7 +297,6 @@ class EventParticipant(models.Model):
         return f"{self.user.username} - {self.event.title} ({self.status})"
     
     def save(self, *args, **kwargs):
-        # Automatikus megerősítés, ha nincs jóváhagyás szükséges
         if not self.event.requires_approval and self.status == 'pending':
             self.status = 'confirmed'
             self.confirmed_at = timezone.now()

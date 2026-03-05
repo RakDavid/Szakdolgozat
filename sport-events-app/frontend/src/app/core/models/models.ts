@@ -125,12 +125,13 @@ export interface SportEvent {
   participants_count?: number;
   distance?: number;
   recommendation_score?: number;
+  reserved_spots?: number;
   average_rating?: number;
   user_participation_status?: {
     status: string;
     joined_at: string;
     can_cancel: boolean;
-  };
+  }| null;
   created_at: string;
   updated_at: string;
 }
@@ -167,6 +168,7 @@ export interface EventParticipant {
   notes?: string;
   rating?: number;
   feedback?: string;
+  extra_guests?: number;
 }
 
 export interface JoinEvent {

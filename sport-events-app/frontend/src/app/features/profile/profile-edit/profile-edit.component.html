@@ -208,21 +208,19 @@
     </div>
 
     <div class="danger-zone-card mt-5">
-        <div class="danger-header">
-          <h3>Veszélyzóna</h3>
-        </div>
-        <div class="danger-content">
-          <div class="danger-info">
-            <h4>Fiók végleges törlése</h4>
-            <p>A profil törlésével minden személyes adatod, létrehozott eseményed és értékelésed véglegesen és visszaállíthatatlanul törlődik a rendszerből.</p>
-          </div>
-          <button class="btn btn-outline-danger" (click)="deleteMyProfile()">
-            🗑️ Profil törlése
-          </button>
-        </div>
+      <div class="danger-header">
+        <h3>Fiók végleges törlése</h3>
       </div>
+      <div class="danger-content">
+        <div class="danger-info">
+          <p>A profil törlésével minden személyes adatod, létrehozott eseményed és értékelésed véglegesen és visszaállíthatatlanul törlődik a rendszerből.</p>
+        </div>
+        <button type="button" class="btn btn-outline-danger" (click)="deleteMyProfile()">
+          🗑️ Profil törlése
+        </button>
+      </div>
+    </div>
   </form>
-
 
   <div *ngIf="!loading && activeTab === 'preferences'">
     <app-sport-preferences></app-sport-preferences>
@@ -283,4 +281,16 @@
     <p>Profil betöltése...</p>
   </div>
 
+</div>
+
+<div class="modal-overlay" *ngIf="showConfirmModal">
+  <div class="custom-modal">
+    <div class="modal-icon">{{ confirmIcon }}</div>
+    <h3 class="modal-title">{{ confirmTitle }}</h3>
+    <p class="modal-message" style="white-space: pre-line;">{{ confirmMessage }}</p>
+    <div class="modal-actions">
+      <button class="btn btn-outline" (click)="cancelConfirm()">Mégse</button>
+      <button class="btn" [ngClass]="confirmButtonClass" (click)="executeConfirm()">{{ confirmButtonText }}</button>
+    </div>
+  </div>
 </div>

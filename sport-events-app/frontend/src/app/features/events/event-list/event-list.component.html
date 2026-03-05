@@ -258,24 +258,5 @@
         Szűrők törlése
       </button>
     </div>
-
-    <!-- Pagination -->
-    <div *ngIf="!loading && events.length > 0" class="pagination">
-      <button
-        class="btn btn-outline"
-        [disabled]="!hasPrevious"
-        (click)="previousPage()"
-      >
-        ← Előző
-      </button>
-      <span class="page-info">{{ currentPage }}. oldal</span>
-      <button
-        class="btn btn-outline"
-        [disabled]="!hasNext"
-        (click)="nextPage()"
-      >
-        Következő →
-      </button>
-    </div>
   </div>
 </div>

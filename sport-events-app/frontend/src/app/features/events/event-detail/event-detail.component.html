@@ -99,7 +99,7 @@
       </div>
 
       <div class="section-card">
-        <h2 class="section-title">Résztvevők ({{ participants.length }})</h2>
+        <h2 class="section-title">Résztvevők ({{ event.participants_count }})</h2>
         <div class="participants-list" *ngIf="participants.length > 0">
           <div class="participant-item" *ngFor="let participant of participants" style="cursor: pointer;" [routerLink]="['/users', participant.user]">
             <div class="participant-avatar">
@@ -111,6 +111,12 @@
             <div class="participant-info">
               <div class="participant-name-row">
                 <span class="participant-name">{{ participant.user_detail?.full_name }}</span>
+                <span *ngIf="participant.extra_guests && participant.extra_guests > 0" class="guest-badge">
+                  +{{ participant.extra_guests }} fő
+                </span>
+                <span *ngIf="participant.user === event.creator && event.reserved_spots && event.reserved_spots > 1" class="guest-badge">
+                    +{{ event.reserved_spots - 1 }} fő
+                  </span>
                 <span *ngIf="participant.user === event.creator" class="creator-badge-small">
                   👑 Szervező
                 </span>
@@ -183,7 +189,12 @@
             </h4>
             <div *ngFor="let p of pendingParticipants" class="pending-item">
               <div class="pending-info">
-                <div class="pending-name">{{ p.user_detail?.full_name }}</div>
+                <div class="pending-name" style="display: flex; align-items: center;">
+                  {{ p.user_detail?.full_name }}
+                  <span *ngIf="p.extra_guests && p.extra_guests > 0" class="guest-badge">
+                    +{{ p.extra_guests }} fő
+                  </span>
+                </div>
                 <div class="pending-username">{{ '@' + p.user_detail?.username }}</div>
                 <div *ngIf="p.notes" class="pending-notes">💬 "{{ p.notes }}"</div>
                 <div class="pending-time">{{ p.joined_at | date:'MMM d, HH:mm' }}</div>
@@ -203,13 +214,17 @@
             Nincs függőben lévő kérés
           </div>
 
-          <div class="creator-btn-group" *ngIf="!event.is_past">
+          <div class="creator-btn-group" *ngIf="!event.is_past && event.status !== 'cancelled'">
             <button class="btn btn-outline btn-block" (click)="editEvent()">
               ✏️ Szerkesztés
             </button>
             <button class="btn btn-danger btn-block" (click)="deleteEvent()">
               🗑️ Törlés
             </button>
+          </div>
+
+          <div *ngIf="event.status === 'cancelled'" style="color: #e53e3e; font-weight: bold; text-align: center; margin-top: 15px; padding: 10px; background-color: #fff5f5; border-radius: 8px;">
+            🚫 Ezt az eseményt korábban törölted.
           </div>
         </div>
 
@@ -229,15 +244,36 @@
 
             <div *ngIf="showJoinForm" class="join-form">
               <h3>Jelentkezés</h3>
+              
               <div class="form-group">
                 <label>Üzenet a szervezőnek (opcionális)</label>
                 <textarea [(ngModel)]="joinNotes" placeholder="Pl: Kezdő vagyok, de szeretnék tanulni..." rows="4" class="form-control"></textarea>
               </div>
-              <button class="btn btn-primary btn-block" (click)="joinEvent()" [disabled]="joining">
+
+              <div class="checkbox-group" style="margin-bottom: 15px; text-align: left;">
+                <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
+                  <input type="checkbox" [(ngModel)]="hasFriends" />
+                  <span>Nem egyedül érkezem (hozok barátokat)</span>
+                </label>
+              </div>
+
+              <div class="form-group" *ngIf="hasFriends" style="text-align: left;">
+                <label>Hány barátot hozol magaddal?</label>
+                <input
+                  type="number"
+                  [(ngModel)]="friendsCount"
+                  class="form-control"
+                  min="1"
+                  placeholder="pl. 2"
+                />
+              </div>
+
+              <button class="btn btn-primary btn-block" (click)="joinEvent()" [disabled]="joining || (hasFriends && (!friendsCount || friendsCount < 1))">
                 <span *ngIf="!joining">Jelentkezés</span>
                 <span *ngIf="joining">Jelentkezés...</span>
               </button>
-              <button class="btn btn-outline btn-block" (click)="toggleJoinForm()" [disabled]="joining">
+              
+              <button class="btn btn-outline btn-block" (click)="toggleJoinForm()" [disabled]="joining" style="margin-top: 10px;">
                 Mégse
               </button>
             </div>
@@ -308,4 +344,16 @@
     </div> </div> <div *ngIf="loading" class="loading-container">
   <div class="spinner"></div>
   <p>Esemény betöltése...</p>
+</div>
+
+<div class="modal-overlay" *ngIf="showConfirmModal">
+  <div class="custom-modal">
+    <div class="modal-icon">{{ confirmIcon }}</div>
+    <h3 class="modal-title">{{ confirmTitle }}</h3>
+    <p class="modal-message">{{ confirmMessage }}</p>
+    <div class="modal-actions">
+      <button class="btn btn-outline" (click)="cancelConfirm()">Mégse</button>
+      <button class="btn" [ngClass]="confirmButtonClass" (click)="executeConfirm()">{{ confirmButtonText }}</button>
+    </div>
+  </div>
 </div>

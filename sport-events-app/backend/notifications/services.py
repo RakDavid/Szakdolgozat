@@ -31,11 +31,14 @@ def send_notification(recipient, notification_type, title, message,
             print(f'Email küldési hiba: {e}')
 
 
-def notify_join_request(event, participant_user, notes=''):
+def notify_join_request(event, participant_user, notes='', extra_guests=0):
     """
     Értesítés a szervezőnek: új jelentkezés érkezett
     """
-    plain_message = f"{participant_user.full_name} (@{participant_user.username}) jelentkezett a(z) \"{event.title}\" eseményedre."
+    guest_text = f" (+{extra_guests} fő)" if extra_guests > 0 else ""
+    guest_html = f" <strong style='color: #5a67d8;'>(+{extra_guests} fő)</strong>" if extra_guests > 0 else ""
+
+    plain_message = f"{participant_user.full_name} (@{participant_user.username}){guest_text} jelentkezett a(z) \"{event.title}\" eseményedre."
     if notes:
         plain_message += f"\n\nÜzenet a jelentkezőtől:\n{notes}"
 
@@ -44,7 +47,7 @@ def notify_join_request(event, participant_user, notes=''):
         <h2 style="color: #667eea; margin-top: 0;">Új jelentkezés érkezett! 🎉</h2>
         <p style="color: #4a5568; font-size: 16px;">Kedves Szervező!</p>
         <p style="color: #4a5568; font-size: 16px; line-height: 1.6;">
-            <strong>{participant_user.full_name}</strong> (@{participant_user.username}) szeretne csatlakozni a(z) <strong>{event.title}</strong> eseményedhez.
+            <strong>{participant_user.full_name}</strong> (@{participant_user.username}){guest_html} szeretne csatlakozni a(z) <strong>{event.title}</strong> eseményedhez.
         </p>
     """
     if notes:
@@ -132,6 +135,40 @@ def notify_participant_status_change(event, participant_user, new_status):
         recipient=participant_user,
         notification_type=notif_type,
         title=title,
+        message=plain_message,
+        html_message=html_message,
+        related_event_id=event.id,
+        related_event_title=event.title
+    )
+
+def notify_recommended_event(user, event):
+    """
+    Értesítés a felhasználónak: egy neki ajánlott esemény jött létre
+    """
+    plain_message = f"Egy új {event.sport_type.name} esemény ('{event.title}') jött létre a közeledben!"
+
+    html_message = f"""
+    <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
+        <h2 style="color: #667eea; margin-top: 0;">Új esemény a közeledben! 📍</h2>
+        <p style="color: #4a5568; font-size: 16px;">Kedves {user.first_name or user.username}!</p>
+        <p style="color: #4a5568; font-size: 16px; line-height: 1.6;">
+            Egy új neked való eseményt hoztak létre a platformon:
+        </p>
+        <div style="background-color: #f8fafc; padding: 15px 20px; border-left: 4px solid #48bb78; border-radius: 4px; margin: 25px 0;">
+            <p style="margin: 0; color: #2d3748; font-weight: bold; font-size: 18px;">{event.title}</p>
+            <p style="margin: 5px 0 0 0; color: #4a5568; font-size: 15px;">Sportág: {event.sport_type.name}</p>
+            <p style="margin: 5px 0 0 0; color: #4a5568; font-size: 15px;">Időpont: {event.start_date_time.strftime('%Y. %m. %d. %H:%M')}</p>
+        </div>
+        <p style="color: #718096; font-size: 14px; text-align: center;">
+            Lépj be az alkalmazásba a további részletekért és a jelentkezéshez!
+        </p>
+    </div>
+    """
+
+    send_notification(
+        recipient=user,
+        notification_type='event_update',
+        title='Új ajánlott esemény',
         message=plain_message,
         html_message=html_message,
         related_event_id=event.id,

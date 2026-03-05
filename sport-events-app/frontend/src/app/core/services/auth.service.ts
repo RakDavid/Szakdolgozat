@@ -175,4 +175,17 @@ export class AuthService {
     this.currentUserSubject.next(null);
     this.router.navigate(['/login']);
   }
+
+  /**
+   * Felhasználói adatok (pl. profilkép) azonnali frissítése a memóriában és a localStorage-ban
+   */
+  updateCurrentUserState(updatedUserData: Partial<User>): void {
+    const currentUser = this.currentUserSubject.value;
+    
+    if (currentUser) {
+      const updatedUser = { ...currentUser, ...updatedUserData };
+      this.currentUserSubject.next(updatedUser);
+      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+    }
+  }
 }

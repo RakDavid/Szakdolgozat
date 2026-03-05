@@ -1,59 +1,72 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { HttpClient, HttpBackend, HttpHeaders } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface GeocodingResult {
   lat: number;
   lng: number;
   display_name: string;
+  place_name?: string;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class GeocodingService {
-  private nominatimUrl = 'https://nominatim.openstreetmap.org/search';
+  private googleApiKey = environment.googleMapsApiKey;
+  private httpBypass: HttpClient;
 
-  constructor(private http: HttpClient) {}
+  constructor(private handler: HttpBackend) {
+    this.httpBypass = new HttpClient(handler);
+  }
 
   /**
-   * Cím alapú geocoding - koordináták lekérése címből
+   * Helyszín és POI keresése (Google Places API - New)
    */
-  geocodeAddress(address: string): Observable<GeocodingResult[]> {
-    const params = {
-      q: address,
-      format: 'json',
-      limit: '5',
-      addressdetails: '1',
-      'accept-language': 'hu'
+  geocodeAddress(query: string): Observable<GeocodingResult[]> {
+    const url = `https://places.googleapis.com/v1/places:searchText`;
+
+    const body = {
+      textQuery: query,
+      languageCode: "hu"
     };
 
-    return this.http.get<any[]>(this.nominatimUrl, { params }).pipe(
-      map(results => {
-        return results.map(result => ({
-          lat: parseFloat(result.lat),
-          lng: parseFloat(result.lon),
-          display_name: result.display_name
+    const headers = new HttpHeaders({
+      'X-Goog-Api-Key': this.googleApiKey,
+      'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.location',
+      'Content-Type': 'application/json'
+    });
+
+    return this.httpBypass.post<any>(url, body, { headers }).pipe(
+      map(response => {
+        if (!response.places) {
+          return [];
+        }
+        
+        return response.places.slice(0, 10).map((place: any) => ({
+          lat: place.location.latitude,
+          lng: place.location.longitude,
+          display_name: place.formattedAddress, 
+          place_name: place.displayName?.text  
         }));
       })
     );
   }
 
   /**
-   * Reverse geocoding - cím lekérése koordinátákból
+   * Koordináta átalakítása címmé (Reverse Geocoding a "Jelenlegi helyzet" gombhoz)
    */
   reverseGeocode(lat: number, lng: number): Observable<string> {
-    const reverseUrl = 'https://nominatim.openstreetmap.org/reverse';
-    const params = {
-      lat: lat.toString(),
-      lon: lng.toString(),
-      format: 'json',
-      'accept-language': 'hu'
-    };
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${this.googleApiKey}&language=hu`;
 
-    return this.http.get<any>(reverseUrl, { params }).pipe(
-      map(result => result.display_name || '')
+    return this.httpBypass.get<any>(url).pipe(
+      map(response => {
+        if (response.status === 'OK' && response.results.length > 0) {
+          return response.results[0].formatted_address;
+        }
+        return 'Ismeretlen helyszín';
+      })
     );
   }
 }

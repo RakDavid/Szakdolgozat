@@ -36,13 +36,15 @@
 /* Tabs */
 .tabs {
   display: flex;
-  gap: 10px;
+  width: 100%; 
+  gap: 0;
   margin-bottom: 30px;
   border-bottom: 2px solid #e0e0e0;
 }
 
 .tab-button {
-  padding: 15px 30px;
+  flex: 1;
+  padding: 15px 10px;
   background: transparent;
   border: none;
   border-bottom: 3px solid transparent;
@@ -52,6 +54,8 @@
   cursor: pointer;
   transition: all 0.3s;
   margin-bottom: -2px;
+  text-align: center; 
+  white-space: nowrap;
 }
 
 .tab-button:hover {

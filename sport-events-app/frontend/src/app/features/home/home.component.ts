@@ -23,7 +23,7 @@ export class HomeComponent implements OnInit {
     {
       icon: '🗺️',
       title: 'Térképes keresés',
-      description: 'Találd meg a közeli sportpályákat és eseményeket egyszerűen'
+      description: 'Találd meg a közeli eseményeket egyszerűen'
     },
     {
       icon: '🎯',

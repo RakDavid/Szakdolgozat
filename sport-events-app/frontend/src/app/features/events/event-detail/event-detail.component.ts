@@ -38,6 +38,17 @@ export class EventDetailComponent implements OnInit {
   currentUserId: number | null = null;
   isCreator = false;
 
+  hasFriends = false;
+  friendsCount: number | null = null;
+
+  showConfirmModal = false;
+  confirmTitle = '';
+  confirmMessage = '';
+  confirmIcon = '❓';
+  confirmButtonText = 'Igen';
+  confirmButtonClass = 'btn-danger';
+  confirmAction: () => void = () => {};
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -90,22 +101,58 @@ export class EventDetailComponent implements OnInit {
     this.errorMessage = '';
   }
 
-  joinEvent(): void {
+ joinEvent(): void {
     if (!this.event) return;
+
+    const extraGuests = this.hasFriends ? (this.friendsCount || 1) : 0;
+    const totalJoining = 1 + extraGuests;
+
+    if (totalJoining > this.event.available_spots) {
+      this.toastService.showError(`Nincs elég hely! Csak ${this.event.available_spots} szabad hely maradt.`);
+      return;
+    }
 
     this.joining = true;
 
-    this.eventService.joinEvent(this.event.id, { notes: this.joinNotes }).subscribe({
+    const payload = { 
+      notes: this.joinNotes,
+      extra_guests: extraGuests
+    };
+
+    this.eventService.joinEvent(this.event.id, payload).subscribe({
       next: (response) => {
         this.toastService.showSuccess('Sikeresen jelentkeztél az eseményre!');
         this.showJoinForm = false;
+        
+        if (this.event) {
+          const isPending = this.event.requires_approval;
+          
+          this.event.user_participation_status = {
+            status: isPending ? 'pending' : 'confirmed',
+            joined_at: new Date().toISOString(),
+            can_cancel: true
+          };
+
+          if (!isPending) {
+            this.event.participants_count = (this.event.participants_count || 0) + totalJoining;
+            this.event.available_spots -= totalJoining;
+            if (this.event.available_spots <= 0) {
+              this.event.is_full = true;
+            }
+          }
+        }
+
         this.joinNotes = '';
+        this.hasFriends = false;
+        this.friendsCount = null;
+        
         this.loadEventDetails(this.event!.id);
         this.loadParticipants(this.event!.id);
         this.joining = false;
       },
       error: (error) => {
-        this.toastService.showError(error.error?.error || 'Sikertelen jelentkezés.'); 
+        console.error('Error joining event', error);
+        this.toastService.showError(error.error?.error || error.error?.[0] || 'Sikertelen jelentkezés.');
         this.joining = false;
       }
     });
@@ -114,24 +161,32 @@ export class EventDetailComponent implements OnInit {
   leaveEvent(): void {
     if (!this.event) return;
 
-    if (!confirm('Biztosan le szeretnéd mondani a részvételt?')) {
-      return;
-    }
-
-    this.leaving = true;
-
-    this.eventService.leaveEvent(this.event.id).subscribe({
-      next: () => {
-        this.toastService.showSuccess('Sikeresen lemondtad a részvételt.'); 
-        this.loadEventDetails(this.event!.id);
-        this.loadParticipants(this.event!.id);
-        this.leaving = false;
-      },
-      error: (error) => {
-        this.toastService.showError(error.error?.error || 'Sikertelen lemondás.');
-        this.leaving = false;
+    this.openConfirmModal(
+      'Részvétel lemondása',
+      'Biztosan le szeretnéd mondani a részvételt ezen az eseményen?',
+      '🚪',
+      'Lemondás',
+      'btn-outline-danger',
+      () => {
+        this.leaving = true;
+        this.eventService.leaveEvent(this.event!.id).subscribe({
+          next: () => {
+            this.toastService.showSuccess('Sikeresen lemondtad a részvételt.');
+            
+            this.event!.user_participation_status = null;
+            
+            this.loadEventDetails(this.event!.id);
+            this.loadParticipants(this.event!.id);
+            this.leaving = false;
+          },
+          error: (error) => {
+            console.error('Error leaving event', error);
+            this.toastService.showError(error.error?.error || 'Sikertelen lemondás.');
+            this.leaving = false;
+          }
+        });
       }
-    });
+    );
   }
 
   editEvent(): void {
@@ -140,29 +195,45 @@ export class EventDetailComponent implements OnInit {
     }
   }
 
-  deleteEvent(): void {
+ deleteEvent(): void {
     if (!this.event) return;
 
-    if (!confirm('Biztosan törölni szeretnéd az eseményt?')) {
-      return;
-    }
+    this.openConfirmModal(
+      'Esemény törlése',
+      'Biztosan törölni szeretnéd az eseményt? Ez a művelet nem vonható vissza.',
+      '🗑️',
+      'Törlés',
+      'btn-danger',
+      () => {
+        this.eventService.deleteEvent(this.event!.id).subscribe({
+          next: () => {
+            this.toastService.showSuccess('Az esemény sikeresen törölve lett.');
+            this.event!.status = 'cancelled';
 
-    this.eventService.deleteEvent(this.event.id).subscribe({
-      next: () => {
-        this.toastService.showSuccess('Az esemény sikeresen törölve lett.'); 
-        this.router.navigate(['/my-events']);
-      },
-      error: (error) => {
-        this.toastService.showError('Az esemény törlése sikertelen.'); 
+          },
+          error: (error) => {
+            console.error('Error deleting event', error);
+            this.toastService.showError('Az esemény törlése sikertelen.');
+          }
+        });
       }
-    });
+    );
   }
 
-  canJoinEvent(): boolean {
-    if (!this.event || !this.event.user_participation_status) {
-      return !this.event?.is_full && !this.event?.is_past && !this.isCreator;
+ canJoinEvent(): boolean {
+    if (!this.event) return false;
+    if (this.isCreator) return false;
+    if (this.event.is_full || this.event.is_past || this.event.status !== 'upcoming') {
+      return false;
     }
-    return false;
+    if (this.event.user_participation_status) {
+      const status = this.event.user_participation_status.status;
+      if (status === 'cancelled' || status === 'rejected') {
+        return true;
+      }
+      return false;
+    }
+    return true;
   }
 
   canRateEvent(): boolean {
@@ -186,29 +257,51 @@ export class EventDetailComponent implements OnInit {
     return this.participants.filter(p => p.status === 'pending');
   }
 
-  approveParticipant(participantId: number): void {
+ approveParticipant(participantId: number): void {
     if (!this.event) return;
+    const participantToApprove = this.participants.find(p => p.id === participantId);
+    const extraGuests = participantToApprove?.extra_guests || 0;
+    const totalApproved = 1 + extraGuests;
+
     this.eventService.manageParticipant(this.event.id, participantId, { status: 'confirmed' })
       .subscribe({
         next: () => {
           this.toastService.showSuccess('Résztvevő jóváhagyva!');
+          if (this.event) {
+            this.event.participants_count = (this.event.participants_count || 0) + totalApproved;
+            this.event.available_spots = (this.event.available_spots || 0) - totalApproved;
+            
+            if (this.event.available_spots <= 0) {
+              this.event.is_full = true;
+            }
+          }
+          this.loadEventDetails(this.event!.id);
           this.loadParticipants(this.event!.id);
         },
-        error: (err) => this.toastService.showError('Hiba a jóváhagyás során.') 
+        error: (err) => this.toastService.showError('Hiba a jóváhagyás során.')
       });
   }
 
-  rejectParticipant(participantId: number): void {
+ rejectParticipant(participantId: number): void {
     if (!this.event) return;
-    if (!confirm('Biztosan elutasítod ezt a kérést?')) return;
-    this.eventService.manageParticipant(this.event.id, participantId, { status: 'rejected' })
-      .subscribe({
-        next: () => {
-          this.toastService.showSuccess('Kérés elutasítva.'); 
-          this.loadParticipants(this.event!.id);
-        },
-        error: (err) => this.toastService.showError('Hiba az elutasítás során.')
-      });
+    
+    this.openConfirmModal(
+      'Kérés elutasítása',
+      'Biztosan elutasítod ezt a jelentkezést?',
+      '❌',
+      'Elutasítás',
+      'btn-danger',
+      () => {
+        this.eventService.manageParticipant(this.event!.id, participantId, { status: 'rejected' })
+          .subscribe({
+            next: () => {
+              this.toastService.showSuccess('Kérés elutasítva.');
+              this.loadParticipants(this.event!.id);
+            },
+            error: (err) => this.toastService.showError('Hiba az elutasítás során.')
+          });
+      }
+    );
   }
 
   getEventDate(dateString: string): string {
@@ -361,5 +454,24 @@ export class EventDetailComponent implements OnInit {
         this.toastService.showError(err.error?.detail || err.error?.error || 'Hiba történt az értékelés során.'); 
       }
     });
+  }
+
+  openConfirmModal(title: string, message: string, icon: string, btnText: string, btnClass: string, action: () => void) {
+    this.confirmTitle = title;
+    this.confirmMessage = message;
+    this.confirmIcon = icon;
+    this.confirmButtonText = btnText;
+    this.confirmButtonClass = btnClass;
+    this.confirmAction = action;
+    this.showConfirmModal = true;
+  }
+
+  cancelConfirm() {
+    this.showConfirmModal = false;
+  }
+
+  executeConfirm() {
+    this.showConfirmModal = false;
+    this.confirmAction();
   }
 }

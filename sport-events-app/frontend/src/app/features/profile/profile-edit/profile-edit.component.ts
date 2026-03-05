@@ -44,6 +44,14 @@ export class ProfileEditComponent implements OnInit {
   passwordSuccessMessage = '';
   passwordErrorMessage = '';
 
+  showConfirmModal = false;
+  confirmTitle = '';
+  confirmMessage = '';
+  confirmIcon = '❓';
+  confirmButtonText = 'Igen';
+  confirmButtonClass = 'btn-danger';
+  confirmAction: () => void = () => {};
+
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
@@ -207,19 +215,25 @@ export class ProfileEditComponent implements OnInit {
   }
 
   deleteMyProfile(): void {
-    const confirmDelete = confirm('⚠️ BIZTOSAN TÖRÖLNI SZERETNÉD A PROFILODAT? \n\nEz a művelet végleges és nem vonható vissza! Minden eseményed és jelentkezésed azonnal törlődik.');
-    
-    if (confirmDelete) {
-      this.userService.deleteProfile().subscribe({
-        next: () => {
-          this.authService.logout(); 
-          this.router.navigate(['/']);
-          this.toastService.showSuccess('A profilod sikeresen törlésre került.');
-        },
-        error: (err) => {
-          this.toastService.showError('Hiba történt a profil törlése során. Kérjük, próbáld újra később.');        }
-      });
-    }
+    this.openConfirmModal(
+      'Profil törlése',
+      '⚠️ BIZTOSAN TÖRÖLNI SZERETNÉD A PROFILODAT?\n\nEz a művelet végleges és nem vonható vissza! Minden eseményed és jelentkezésed azonnal törlődik.',
+      '⚠️',
+      'Végleges törlés',
+      'btn-danger',
+      () => {
+        this.userService.deleteProfile().subscribe({
+          next: () => {
+            this.authService.logout(); 
+            this.router.navigate(['/']);
+            this.toastService.showSuccess('A profilod sikeresen törlésre került.');
+          },
+          error: (err) => {
+            this.toastService.showError('Hiba történt a profil törlése során. Kérjük, próbáld újra később.');
+          }
+        });
+      }
+    );
   }
 
   searchLocationByAddress(): void {
@@ -303,6 +317,8 @@ export class ProfileEditComponent implements OnInit {
         this.toastService.showSuccess('Profil sikeresen frissítve!');
         this.saving = false;
         
+        this.authService.updateCurrentUserState(user);
+
         this.router.navigate(['/profile']);
       },
       error: (error) => {
@@ -379,5 +395,24 @@ export class ProfileEditComponent implements OnInit {
       'advanced': 'Profi'
     };
     return labels[level] || level;
+  }
+
+  openConfirmModal(title: string, message: string, icon: string, btnText: string, btnClass: string, action: () => void) {
+    this.confirmTitle = title;
+    this.confirmMessage = message;
+    this.confirmIcon = icon;
+    this.confirmButtonText = btnText;
+    this.confirmButtonClass = btnClass;
+    this.confirmAction = action;
+    this.showConfirmModal = true;
+  }
+
+  cancelConfirm() {
+    this.showConfirmModal = false;
+  }
+
+  executeConfirm() {
+    this.showConfirmModal = false;
+    this.confirmAction();
   }
 }
