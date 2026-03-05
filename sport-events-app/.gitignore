@@ -58,4 +58,4 @@ media/
 Thumbs.db
 
 # Titkos környezeti változók (API kulcsok)
-
+frontend/src/environments/environment.ts
