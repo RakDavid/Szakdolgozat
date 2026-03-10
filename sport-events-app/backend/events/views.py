@@ -161,11 +161,12 @@ class MyEventsView(generics.ListAPIView):
     """
     serializer_class = SportEventListSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = None
     
     def get_queryset(self):
         return SportEvent.objects.filter(
             creator=self.request.user,
-        ).select_related('sport_type', 'creator').prefetch_related('images', 'participants')
+        ).select_related('sport_type', 'creator').prefetch_related('images', 'participants').order_by('-created_at').distinct()
 
 
 class MyParticipationsView(generics.ListAPIView):
@@ -175,6 +176,7 @@ class MyParticipationsView(generics.ListAPIView):
     """
     serializer_class = SportEventListSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = None
     
     def get_queryset(self):
         participated_event_ids = EventParticipant.objects.filter(
@@ -184,7 +186,7 @@ class MyParticipationsView(generics.ListAPIView):
         
         return SportEvent.objects.filter(
             id__in=participated_event_ids,
-        ).select_related('sport_type', 'creator').prefetch_related('images', 'participants')
+        ).select_related('sport_type', 'creator').prefetch_related('images', 'participants').order_by('-created_at').distinct()
 
 
 class JoinEventView(APIView):

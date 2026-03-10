@@ -201,4 +201,9 @@ export class SportPreferencesComponent implements OnInit {
   getSportIcon(sportId: number): string {
     return this.sports.find(s => s.id === sportId)?.icon || '🎯';
   }
+
+  getSkillLevelLabel(level: 'beginner' | 'intermediate' | 'advanced'): string {
+    const found = this.skillLevels.find(s => s.value === level);
+    return found ? `${found.icon} ${found.label}` : level;
+  }
 }

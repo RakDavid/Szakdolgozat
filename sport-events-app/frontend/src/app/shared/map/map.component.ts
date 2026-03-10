@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, AfterViewInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as L from 'leaflet';
 
@@ -9,7 +9,7 @@ import * as L from 'leaflet';
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.css']
 })
-export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
+export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges {
   @Input() latitude: number = 47.4979; 
   @Input() longitude: number = 19.0402;
   @Input() zoom: number = 13;
@@ -38,6 +38,12 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.map) {
       this.map.remove();
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['markers'] && this.map) {
+      this.updateMarkers(this.markers);
     }
   }
 

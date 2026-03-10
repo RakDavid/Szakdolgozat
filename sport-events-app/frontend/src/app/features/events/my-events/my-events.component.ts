@@ -43,8 +43,15 @@ export class MyEventsComponent implements OnInit {
       participations: this.eventService.getMyParticipations()
     }).subscribe({
       next: ({ myEvents, participations }) => {
-        this.createdEvents = myEvents.results.filter(e => this.isEventActive(e));
-        this.participatingEvents = participations.results.filter(e => this.isEventActive(e));
+        // Biztonságos tömb kinyerés
+        const createdList = Array.isArray(myEvents) ? myEvents : (myEvents.results || []);
+        const partList = Array.isArray(participations) ? participations : (participations.results || []);
+
+        // --- ÚJ SZŰRÉS A BACKEND STÁTUSZ ALAPJÁN ---
+        // Csak azokat engedjük át, amik 'upcoming' (közelgő) vagy 'ongoing' (folyamatban) státuszúak
+        this.createdEvents = createdList.filter(e => e.status === 'upcoming' || e.status === 'ongoing');
+        
+        this.participatingEvents = partList.filter(e => e.status === 'upcoming' || e.status === 'ongoing');
         
         this.loading = false;
         this.loadPendingRequests();

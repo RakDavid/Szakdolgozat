@@ -8,7 +8,6 @@ import {
   EventParticipant,
   JoinEvent,
   UpdateParticipantStatus,
-  RateEvent,
   EventImage,
   PaginatedResponse,
   EventFilterParams

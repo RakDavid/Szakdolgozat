@@ -1,7 +1,5 @@
 import { Routes } from '@angular/router';
-import { AuthGuard } from './core/guards/auth.guard';
-
-// Lazy loading komponensek
+import { authGuard } from './core/guards/auth.guard';
 import { LoginComponent } from './features/auth/login/login.component';
 import { RegisterComponent } from './features/auth/register/register.component';
 import { HomeComponent } from './features/home/home.component';
@@ -34,49 +32,49 @@ export const routes: Routes = [
   {
     path: 'events',
     component: EventListComponent,
-    canActivate: [AuthGuard],
+    canActivate: [authGuard], 
     title: 'Események - SportEvents'
   },
   {
     path: 'events/:id',
     component: EventDetailComponent,
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
     title: 'Esemény részletei - SportEvents'
   },
   {
     path: 'create-event',
     component: EventCreateComponent,
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
     title: 'Új esemény - SportEvents'
   },
   {
     path: 'events/:id/edit',
     component: EventCreateComponent,
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
     title: 'Esemény szerkesztése - SportEvents'
   },
   {
     path: 'my-events',
     component: MyEventsComponent,
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
     title: 'Saját események - SportEvents'
   },
   {
     path: 'profile',
     component: ProfileViewComponent,
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
     title: 'Profilom - SportEvents'
   },
   {
     path: 'users/:id',
     component: ProfileViewComponent,
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
     title: 'Felhasználói profil - SportEvents'
   },
   {
     path: 'profile/edit',
     component: ProfileEditComponent,
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
     title: 'Profil szerkesztése - SportEvents'
   },
 

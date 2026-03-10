@@ -165,8 +165,12 @@ export class ProfileViewComponent implements OnInit {
     if (this.showCreated && this.createdEvents.length === 0) {
       this.loadingEvents = true;
       this.eventService.getMyEvents().subscribe({
-        next: (res) => {
-          this.createdEvents = res.results;
+        next: (res: any) => {
+          let events = Array.isArray(res) ? res : (res.results || []);
+          this.createdEvents = events.sort((a: any, b: any) => 
+            new Date(b.start_date_time).getTime() - new Date(a.start_date_time).getTime()
+          );
+          
           this.loadingEvents = false;
         },
         error: () => this.loadingEvents = false
@@ -182,8 +186,12 @@ export class ProfileViewComponent implements OnInit {
     if (this.showParticipated && this.participatedEvents.length === 0) {
       this.loadingEvents = true;
       this.eventService.getMyParticipations().subscribe({
-        next: (res) => {
-          this.participatedEvents = res.results;
+        next: (res: any) => {
+          let events = Array.isArray(res) ? res : (res.results || []);
+          this.participatedEvents = events.sort((a: any, b: any) => 
+            new Date(b.start_date_time).getTime() - new Date(a.start_date_time).getTime()
+          );
+          
           this.loadingEvents = false;
         },
         error: () => this.loadingEvents = false

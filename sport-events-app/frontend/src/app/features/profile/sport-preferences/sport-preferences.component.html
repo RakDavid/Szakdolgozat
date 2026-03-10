@@ -38,7 +38,7 @@
               <span class="suggestion-icon">{{ getSportIcon(s.sport_type) }}</span>
               <div class="suggestion-info">
                 <strong>{{ getSportName(s.sport_type) }}</strong>
-                <span class="suggestion-level">{{ s.skill_level }} · {{ s.interest_level }}/10 érdeklődés</span>
+                <span class="suggestion-level">{{ getSkillLevelLabel(s.skill_level) }} · {{ s.interest_level }}/10 érdeklődés</span>
               </div>
             </div>
           </div>

@@ -258,20 +258,30 @@ class SportPreferenceAiSuggestView(APIView):
             client = genai.Client(api_key=api_key)
 
             prompt = f"""
-            Felhasználó leírása: "{description}"
+            Te egy szigorú adatelemző asszisztens vagy. A feladatod a felhasználó magyar nyelvű leírásából kinyerni a sportág preferenciákat.
 
-            A feladatod, hogy a fenti magyar nyelvű leírás alapján sportág preferenciákat generálj.
-
-            KIZÁRÓLAG az alábbi listából választhatsz sportágakat (ID: Név formatumban vannak):
+            Elérhető sportágak (ID: Név formátumban):
             {sport_list_text}
 
-            Szabályok:
-            1. 'sport_type': Szigorúan az adott sportág száma (ID) a fenti listából. Ne a nevét írd be!
-            2. 'skill_level': Szigorúan csak ez a 3 szó lehet: 'beginner', 'intermediate', 'advanced'.
-            3. 'interest_level': Egy szám 1 és 10 között.
+            Felhasználó leírása: "{description}"
 
-            KIZÁRÓLAG egy érvényes, nyers JSON-t adj vissza markdown formázás (```) nélkül, az alábbi pontos struktúrában:
-            {{"suggestions": [{{"sport_type": 1, "skill_level": "beginner", "interest_level": 7}}]}}
+            SZIGORÚ SZABÁLYOK:
+            1. KIZÁRÓLAG OLYAN SPORTÁGOT JAVASOLJ, amit a felhasználó KIFEJEZETTEN megemlít, vagy a leírásából egyértelműen következik (pl. ha azt mondja "szeretek dobálni és ütővel futni", az baseball)! 
+            2. NE találj ki és NE adj hozzá extra sportágakat (pl. ha csak baseballt említ, ne rakj be amerikai focit vagy mást)!
+            3. 'sport_type': Szigorúan az adott sportág száma (ID) a fenti listából. A nevet NE írd bele a JSON-be!
+            4. 'skill_level': KIZÁRÓLAG ezen három angol szó egyike lehet: "beginner" (kezdő), "intermediate" (haladó), "advanced" (profi).
+            5. 'interest_level': Egy egész szám 1 és 10 között, ami az érdeklődés mértékét mutatja.
+            6. Ha a felhasználó egyetlen listában szereplő sportot sem említ, adj vissza egy üres listát: {{"suggestions": []}}
+
+            KIMENETI FORMÁTUM:
+            Válaszként KIZÁRÓLAG egy érvényes JSON objektumot adj vissza! Ne magyarázz, ne használj markdown kódblokkokat (```json), csak a nyers JSON szöveget!
+
+            PÉLDA A HELYES VÁLASZRA:
+            {{
+                "suggestions": [
+                    {{"sport_type": 1, "skill_level": "beginner", "interest_level": 7}}
+                ]
+            }}
             """
 
             response = client.models.generate_content(
