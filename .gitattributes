@@ -1,2 +1,6 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+backend/media/ export-ignore
+frontend/public/ export-ignore
+.git/ export-ignore
