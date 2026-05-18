@@ -33,7 +33,7 @@
   color: #666;
 }
 
-/* Alerts */
+/* Értesítés */
 .alert {
   padding: 15px 20px;
   border-radius: 8px;
@@ -53,7 +53,7 @@
   border: 1px solid #ef9a9a;
 }
 
-/* Form */
+/* Űrlap */
 .edit-form {
   display: flex;
   flex-direction: column;
@@ -122,7 +122,7 @@
   border-bottom: none;
 }
 
-/* Profile Picture Upload */
+/* Profilkép */
 .profile-picture-upload {
   display: flex;
   gap: 30px;
@@ -165,7 +165,7 @@
   font-size: 12px;
 }
 
-/* Form Groups */
+/* Űrlap csoportok */
 .form-group {
   margin-bottom: 20px;
 }
@@ -223,7 +223,7 @@ textarea.form-control {
   gap: 20px;
 }
 
-/* Sport Preferences */
+/* Sport Preferenciák */
 .preferences-list {
   display: flex;
   flex-direction: column;
@@ -285,7 +285,7 @@ textarea.form-control {
   font-style: italic;
 }
 
-/* Form Actions */
+/* Űrlap */
 .form-actions {
   display: flex;
   gap: 15px;
@@ -293,7 +293,7 @@ textarea.form-control {
   padding-top: 20px;
 }
 
-/* Buttons */
+/* Gombok */
 .btn {
   padding: 12px 24px;
   border-radius: 8px;
@@ -430,7 +430,7 @@ textarea.form-control {
   transform: scale(0.96);
 }
 
-/* Loading */
+/* Töltés */
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -514,7 +514,6 @@ textarea.form-control {
   to { transform: rotate(360deg); }
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .page-header h1 {
     font-size: 28px;

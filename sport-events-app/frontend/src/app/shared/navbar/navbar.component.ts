@@ -40,6 +40,9 @@ export class NavbarComponent implements OnInit {
     });
   }
 
+  /**
+   * Megnyitja vagy bezárja az értesítési panelt, és ha megnyílik, betölti az értesítéseket.
+   */
   toggleNotifications(): void {
     this.showNotifications = !this.showNotifications;
     if (this.showNotifications) {
@@ -49,18 +52,27 @@ export class NavbarComponent implements OnInit {
     }
   }
 
+  /**
+   * Lekéri a legújabb értesítéseket a szerverről a panel számára.
+   */
   loadNotifications(): void {
     this.notificationService.getNotifications().subscribe(notifs => {
       this.notifications = notifs.slice(0, 10);
     });
   }
 
+  /**
+   * Az összes értesítést olvasottnak jelöli a szerveren és frissíti a helyi listát.
+   */
   markAllRead(): void {
     this.notificationService.markAllRead().subscribe(() => {
       this.notifications = this.notifications.map(n => ({ ...n, is_read: true }));
     });
   }
 
+  /**
+   * Kezeli az értesítésre történő kattintást: olvasottnak jelöli és átirányít az adott eseményre.
+   */
   onNotifClick(notif: any): void {
     if (!notif.is_read) {
       this.notificationService.markRead(notif.id).subscribe(() => {
@@ -73,6 +85,9 @@ export class NavbarComponent implements OnInit {
     }
   }
 
+  /**
+   * Megnyitja vagy bezárja a mobil nézetű navigációs menüt.
+   */
   toggleMenu(): void {
     this.isMenuOpen = !this.isMenuOpen;
     if (this.isMenuOpen) {
@@ -80,6 +95,9 @@ export class NavbarComponent implements OnInit {
     }
   }
 
+  /**
+   * Megnyitja vagy bezárja a lenyíló profilmenüt.
+   */
   toggleProfileMenu(): void {
     this.isProfileMenuOpen = !this.isProfileMenuOpen;
     if (this.isProfileMenuOpen) {
@@ -87,17 +105,26 @@ export class NavbarComponent implements OnInit {
     }
   }
 
+  /**
+   * Bezárja az összes aktív legördülő menüt és értesítési panelt.
+   */
   closeMenus(): void {
     this.isMenuOpen = false;
     this.isProfileMenuOpen = false;
     this.showNotifications = false;
   }
 
+  /**
+   * Kijelentkezteti a felhasználót és bezárja a megnyitott menüket.
+   */
   logout(): void {
     this.authService.logout();
     this.closeMenus();
   }
 
+  /**
+   * Visszaadja a felhasználó profilképének teljes URL-jét, kezelve a relatív útvonalakat.
+   */
   getProfileImageUrl(): string {
     if (!this.currentUser || !this.currentUser.profile_picture) return '';
     
@@ -111,6 +138,9 @@ export class NavbarComponent implements OnInit {
     return `${baseUrl}${pic}`;
   }
 
+  /**
+   * Monogramot generál a felhasználó vezeték- és keresztnevéből (vagy felhasználónevéből) a profilkép helyett.
+   */
   getUserInitials(): string {
     if (!this.currentUser) return '';
     const firstInitial = this.currentUser.first_name?.charAt(0) || '';

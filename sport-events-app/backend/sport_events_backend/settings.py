@@ -13,7 +13,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'default-biztonsagi-kulcs')
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
@@ -140,7 +139,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'accounts.User'
 
 
-# REST Framework konfiguráció
+# REST Framework configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -174,7 +173,7 @@ SIMPLE_JWT = {
 }
 
 
-# CORS beállítások (Angular frontend-hez)
+# CORS beállítások
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:4200',  # Angular default port
 ]

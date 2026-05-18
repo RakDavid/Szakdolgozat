@@ -16,7 +16,7 @@
   height: 70px;
 }
 
-/* Brand */
+/* Márka */
 .navbar-brand {
   display: flex;
   align-items: center;
@@ -59,7 +59,7 @@
   opacity: 0.8;
 }
 
-/* Desktop Menu */
+/* Menü */
 .desktop-menu {
   display: flex;
   gap: 20px;
@@ -92,7 +92,7 @@
   font-size: 18px;
 }
 
-/* Notification */
+/* Értesítés */
 .notification-menu {
   position: relative;
 }
@@ -168,7 +168,7 @@
   margin: 0;
 }
 
-/* Szebb "Összes olvasottnak" gomb */
+/* Gombok */
 .btn-text {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -260,7 +260,7 @@
   border-radius: 10px;
 }
 
-/* User Menu */
+/* Felhasználó menü */
 .navbar-actions {
   display: flex;
   align-items: center;
@@ -323,7 +323,7 @@
   transition: transform 0.3s;
 }
 
-/* Dropdown Menu */
+/* Lenyíló */
 .dropdown-menu {
   position: absolute;
   top: calc(100% + 10px);
@@ -387,7 +387,7 @@
   background: #fee;
 }
 
-/* Auth Buttons */
+/* Auth Gombok */
 .auth-buttons {
   display: flex;
   gap: 10px;
@@ -425,7 +425,7 @@
   box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
 }
 
-/* Mobile Menu Toggle */
+/* Mobil Menü lenyitás */
 .mobile-menu-toggle {
   display: none;
   background: transparent;
@@ -475,7 +475,7 @@
   transform: rotate(-45deg);
 }
 
-/* Mobile Menu */
+/* Mobile Menü */
 .mobile-menu {
   display: block; 
   background: white;
@@ -534,7 +534,6 @@
   color: #e74c3c;
 }
 
-/* Overlay */
 .menu-overlay {
   position: fixed;
   top: 0;
@@ -546,7 +545,6 @@
   animation: fadeIn 0.2s;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .desktop-menu {
     display: none;

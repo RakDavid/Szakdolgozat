@@ -6,12 +6,11 @@
     </div>
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
-      <!-- Error message -->
+      
       <div *ngIf="errorMessage" class="alert alert-error">
         {{ errorMessage }}
       </div>
 
-      <!-- Username field -->
       <div class="form-group">
         <label for="username">Felhasználónév</label>
         <input
@@ -27,7 +26,6 @@
         </div>
       </div>
 
-      <!-- Password field -->
       <div class="form-group">
         <label for="password">Jelszó</label>
         <input
@@ -44,7 +42,6 @@
         </div>
       </div>
 
-      <!-- Submit button -->
       <button
         type="submit"
         class="btn btn-primary btn-block"
@@ -56,7 +53,6 @@
       </button>
     </form>
 
-    <!-- Register link -->
     <div class="auth-footer">
       <p>Még nincs fiókod? <a routerLink="/register">Regisztrálj most</a></p>
     </div>

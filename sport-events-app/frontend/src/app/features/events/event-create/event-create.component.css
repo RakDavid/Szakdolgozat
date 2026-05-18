@@ -33,7 +33,6 @@
   color: #666;
 }
 
-/* Alert */
 .alert {
   padding: 15px 20px;
   border-radius: 8px;
@@ -47,7 +46,6 @@
   border: 1px solid #ef9a9a;
 }
 
-/* Form */
 .event-form {
   display: flex;
   flex-direction: column;
@@ -127,7 +125,6 @@ textarea.form-control {
   gap: 20px;
 }
 
-/* Location Actions */
 .location-actions {
   display: flex;
   gap: 10px;
@@ -135,7 +132,6 @@ textarea.form-control {
   flex-wrap: wrap;
 }
 
-/* Checkboxes */
 .checkbox-group {
   margin-bottom: 15px;
 }
@@ -155,7 +151,6 @@ textarea.form-control {
   cursor: pointer;
 }
 
-/* Form Actions */
 .form-actions {
   display: flex;
   gap: 15px;
@@ -164,7 +159,6 @@ textarea.form-control {
   flex-wrap: wrap;
 }
 
-/* Buttons */
 .btn {
   padding: 12px 24px;
   border-radius: 8px;
@@ -206,7 +200,6 @@ textarea.form-control {
   cursor: not-allowed;
 }
 
-/* Geocoding Results */
 .geocoding-results {
   background: white;
   border: 2px solid #667eea;
@@ -275,7 +268,74 @@ textarea.form-control {
   color: #555;
 }
 
-/* Responsive */
+.search-row {
+  display: flex;
+  gap: 10px;
+}
+
+.search-row .form-control {
+  flex: 1;
+}
+
+.form-divider {
+  text-align: center;
+  margin: 25px 0;
+  position: relative;
+}
+
+.form-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  border-top: 1px solid #e0e0e0;
+  z-index: 1;
+}
+
+.form-divider span {
+  background-color: white;
+  padding: 0 15px;
+  color: #999;
+  font-size: 14px;
+  position: relative;
+  z-index: 2;
+}
+
+.readonly-input {
+  background-color: #f8f9fa;
+  border-style: dashed;
+  cursor: not-allowed;
+  color: #555;
+}
+
+.success-feedback {
+  color: #2e7d32;
+  font-weight: 600;
+  margin-top: 5px;
+  display: block;
+}
+
+.w-100 {
+  width: 100%;
+}
+
+.mt-2 {
+  margin-top: 10px;
+}
+
+.mt-3 {
+  margin-top: 15px;
+}
+
+.mt-4 {
+  margin-top: 20px;
+}
+
+.d-block {
+  display: block;
+}
+
 @media (max-width: 768px) {
   .page-header h1 {
     font-size: 28px;

@@ -1,42 +1,41 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils import timezone
-from .models import SportEvent, EventParticipant, EventImage
-
-
-class EventImageInline(admin.TabularInline):
-    """
-    Inline képek az esemény admin-ban
-    """
-    model = EventImage
-    extra = 1
-    fields = ['image', 'caption', 'is_primary']
+from django.db.models import Avg
+from .models import SportEvent, EventParticipant
 
 
 class EventParticipantInline(admin.TabularInline):
     """
-    Inline résztvevők az esemény admin-ban
+    Inline résztvevők az esemény admin-ban.
+    Itt rögtön látni fogod, ki hány csillagot adott, és mit írt (feedback).
     """
     model = EventParticipant
-    extra = 0
-    fields = ['user', 'status', 'joined_at', 'rating']
-    readonly_fields = ['joined_at']
+    extra = 0 
+    fields = ['user', 'status', 'joined_at', 'extra_guests', 'rating', 'short_feedback']
+    readonly_fields = ['joined_at', 'short_feedback']
+
+    def short_feedback(self, obj):
+        """Csak olvasható, rövidített visszajelzés a táblázatban"""
+        if obj.feedback:
+            return obj.feedback[:50] + "..." if len(obj.feedback) > 50 else obj.feedback
+        return "-"
+    short_feedback.short_description = 'Szöveges értékelés'
 
 
 @admin.register(SportEvent)
 class SportEventAdmin(admin.ModelAdmin):
     """
-    Sportesemények admin felület
+    Sportesemények admin felület (Intelligens, dinamikus adatokkal)
     """
     list_display = [
         'title', 
         'sport_type', 
         'creator', 
         'start_date_time', 
-        'location_name',
-        'get_participants_count',
-        'status',
-        'is_full_display',
+        'display_participants', 
+        'display_real_status',  
+        'get_average_rating',    
         'created_at'
     ]
     
@@ -44,22 +43,14 @@ class SportEventAdmin(admin.ModelAdmin):
         'status', 
         'sport_type', 
         'difficulty', 
-        'is_public', 
-        'is_free',
-        'start_date_time',
-        'created_at'
+        'start_date_time'
     ]
     
     search_fields = [
-        'title', 
-        'description', 
-        'location_name', 
-        'location_address',
-        'creator__username'
+        'title', 'description', 'location_name', 'creator__username'
     ]
     
     ordering = ['-start_date_time']
-    
     date_hierarchy = 'start_date_time'
     
     fieldsets = (
@@ -73,7 +64,7 @@ class SportEventAdmin(admin.ModelAdmin):
             'fields': ('location_name', 'location_address', 'latitude', 'longitude')
         }),
         ('Résztvevők', {
-            'fields': ('max_participants', 'min_participants')
+            'fields': ('max_participants', 'min_participants', 'reserved_spots')
         }),
         ('Beállítások', {
             'fields': ('difficulty', 'is_public', 'requires_approval', 'is_free', 'price')
@@ -82,90 +73,69 @@ class SportEventAdmin(admin.ModelAdmin):
             'fields': ('notes',),
             'classes': ('collapse',)
         }),
-        ('Metaadatok', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        }),
     )
     
     readonly_fields = ['created_at', 'updated_at']
     
-    inlines = [EventParticipantInline, EventImageInline]
+    inlines = [EventParticipantInline]
     
-    def get_participants_count(self, obj):
-        """Résztvevők száma / maximum"""
-        confirmed = obj.participants.filter(status='confirmed').count()
-        return f"{confirmed} / {obj.max_participants}"
-    get_participants_count.short_description = 'Résztvevők'
-    
-    def is_full_display(self, obj):
-        """Betelt-e jelző"""
-        if obj.is_full:
-            return format_html(
-                '<span style="color: red; font-weight: bold;">✓ Betelt</span>'
-            )
-        return format_html(
-            '<span style="color: green;">✗ Van hely</span>'
-        )
-    is_full_display.short_description = 'Betelt?'
-    
-    actions = ['mark_as_completed', 'mark_as_cancelled']
-    
-    def mark_as_completed(self, request, queryset):
-        """Események befejezettnek jelölése"""
-        updated = queryset.update(status='completed')
-        self.message_user(request, f'{updated} esemény befejezettnek jelölve.')
-    mark_as_completed.short_description = 'Kiválasztottak befejezettnek jelölése'
-    
-    def mark_as_cancelled(self, request, queryset):
-        """Események törlése"""
-        updated = queryset.update(status='cancelled')
-        self.message_user(request, f'{updated} esemény törölve.')
-    mark_as_cancelled.short_description = 'Kiválasztottak törlése'
+    def display_participants(self, obj):
+        """Kiszámolt résztvevők száma / maximum (plusz vendégekkel és szervezővel együtt)"""
+        count = obj.participants_count 
+        return f"{count} / {obj.max_participants}"
+    display_participants.short_description = 'Létszám'
+
+    def display_real_status(self, obj):
+        """Valós státusz kiszámítása és vizuális megjelenítése az idő alapján"""
+        now = timezone.now()
+        if obj.status == 'cancelled':
+            return format_html('<span style="color: red; font-weight: bold;">❌ Törölve</span>')
+        
+        if obj.start_date_time > now:
+            return format_html('<span style="color: #d97706; font-weight: bold;">⏳ Közelgő</span>')
+        
+        if obj.duration_minutes:
+            end_time = obj.start_date_time + timezone.timedelta(minutes=obj.duration_minutes)
+            if now < end_time:
+                return format_html('<span style="color: #2563eb; font-weight: bold;">🏃 Folyamatban</span>')
+            else:
+                return format_html('<span style="color: #16a34a; font-weight: bold;">✅ Befejezett</span>')
+        
+        return format_html('<span style="color: #16a34a; font-weight: bold;">✅ Befejezett</span>')
+    display_real_status.short_description = 'Állapot'
+
+    def get_average_rating(self, obj):
+        """Kiszámolja az esemény átlagos értékelését a résztvevők pontjai alapján"""
+        avg = obj.participants.filter(rating__isnull=False).aggregate(Avg('rating'))['rating__avg']
+        if avg:
+            return f"{avg:.1f} ⭐"
+        return "-"
+    get_average_rating.short_description = 'Értékelés'
 
 
 @admin.register(EventParticipant)
 class EventParticipantAdmin(admin.ModelAdmin):
     """
-    Résztvevők admin felület
+    Különálló Résztvevők és Értékelések admin felülete
     """
     list_display = [
-        'user',
-        'event',
-        'status',
-        'joined_at',
-        'confirmed_at',
-        'get_rating'
+        'user', 'event', 'status', 'joined_at', 'get_rating', 'short_feedback'
     ]
     
-    list_filter = [
-        'status',
-        'joined_at',
-        'event__sport_type'
-    ]
-    
-    search_fields = [
-        'user__username',
-        'user__email',
-        'event__title'
-    ]
-    
+    list_filter = ['status', 'rating', 'event__sport_type']
+    search_fields = ['user__username', 'event__title', 'feedback']
     ordering = ['-joined_at']
-    
     date_hierarchy = 'joined_at'
     
     fieldsets = (
         ('Alapadatok', {
-            'fields': ('event', 'user', 'status')
-        }),
-        ('Időpontok', {
-            'fields': ('joined_at', 'confirmed_at')
-        }),
-        ('Megjegyzések', {
-            'fields': ('notes',)
+            'fields': ('event', 'user', 'status', 'extra_guests')
         }),
         ('Értékelés', {
             'fields': ('rating', 'feedback'),
+        }),
+        ('Időpontok és Megjegyzések', {
+            'fields': ('joined_at', 'confirmed_at', 'notes'),
             'classes': ('collapse',)
         }),
     )
@@ -173,69 +143,15 @@ class EventParticipantAdmin(admin.ModelAdmin):
     readonly_fields = ['joined_at', 'confirmed_at']
     
     def get_rating(self, obj):
-        """Értékelés csillagokkal"""
+        """Értékelés csillagokkal való megjelenítése"""
         if obj.rating:
             return '⭐' * obj.rating
         return '-'
     get_rating.short_description = 'Értékelés'
-    
-    actions = ['confirm_participants', 'cancel_participants']
-    
-    def confirm_participants(self, request, queryset):
-        """Résztvevők megerősítése"""
-        updated = queryset.update(status='confirmed', confirmed_at=timezone.now())
-        self.message_user(request, f'{updated} résztvevő megerősítve.')
-    confirm_participants.short_description = 'Kiválasztottak megerősítése'
-    
-    def cancel_participants(self, request, queryset):
-        """Résztvevők lemondása"""
-        updated = queryset.update(status='cancelled')
-        self.message_user(request, f'{updated} résztvevő lemondva.')
-    cancel_participants.short_description = 'Kiválasztottak lemondása'
 
-
-@admin.register(EventImage)
-class EventImageAdmin(admin.ModelAdmin):
-    """
-    Esemény képek admin
-    """
-    list_display = [
-        'get_thumbnail',
-        'event',
-        'caption',
-        'is_primary',
-        'uploaded_at'
-    ]
-    
-    list_filter = [
-        'is_primary',
-        'uploaded_at'
-    ]
-    
-    search_fields = [
-        'event__title',
-        'caption'
-    ]
-    
-    ordering = ['-uploaded_at']
-    
-    fieldsets = (
-        ('Kép', {
-            'fields': ('event', 'image', 'caption')
-        }),
-        ('Beállítások', {
-            'fields': ('is_primary',)
-        }),
-    )
-    
-    readonly_fields = ['uploaded_at']
-    
-    def get_thumbnail(self, obj):
-        """Kép előnézet"""
-        if obj.image:
-            return format_html(
-                '<img src="{}" width="100" height="100" style="object-fit: cover;" />',
-                obj.image.url
-            )
-        return '-'
-    get_thumbnail.short_description = 'Előnézet'
+    def short_feedback(self, obj):
+        """Rövidített visszajelzés a fő listanézethez"""
+        if obj.feedback:
+            return obj.feedback[:50] + "..." if len(obj.feedback) > 50 else obj.feedback
+        return "-"
+    short_feedback.short_description = 'Visszajelzés'

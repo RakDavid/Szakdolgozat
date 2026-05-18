@@ -1,6 +1,5 @@
 <div class="preferences-container">
   <div class="form-section">
-    <!-- Header -->
     <div class="section-header">
       <div class="header-title">
         <h2>Sportpreferenciák</h2>
@@ -12,7 +11,6 @@
       </button>
     </div>
 
-    <!-- AI Panel -->
     <div class="ai-panel" [class.open]="showAiPanel">
       <div class="ai-panel-inner">
         <h3>🤖 AI-alapú preferencia-generálás</h3>
@@ -30,7 +28,6 @@
           </button>
         </div>
 
-        <!-- AI Javaslatok -->
         <div class="ai-suggestions" *ngIf="aiSuggestions.length > 0">
           <h4>Javasolt preferenciák:</h4>
           <div class="suggestion-list">
@@ -49,13 +46,11 @@
       </div>
     </div>
 
-    <!-- Loading -->
     <div class="loading-state" *ngIf="loading">
       <div class="spinner"></div>
       <p>Sportágak betöltése...</p>
     </div>
 
-    <!-- Sports Grid -->
     <div class="sports-grid" *ngIf="!loading">
       <div
         class="sport-card"
@@ -69,10 +64,8 @@
           <span class="check-mark" *ngIf="selectedSports.has(sport.id)">✓</span>
         </div>
 
-        <!-- Preference controls - csak ha ki van választva -->
         <div class="pref-controls" *ngIf="selectedSports.has(sport.id)" (click)="$event.stopPropagation()">
 
-          <!-- Szint -->
           <div class="control-group">
             <label>Szint</label>
             <div class="skill-buttons">
@@ -88,7 +81,6 @@
             </div>
           </div>
 
-          <!-- Érdeklődési szint -->
           <div class="control-group">
             <label>Érdeklődés: <span class="interest-value">{{ getPreference(sport.id)?.interest_level || 1 }}/10</span></label>
             <div class="interest-label-text">{{ getInterestLabel(getPreference(sport.id)?.interest_level || 1) }}</div>
@@ -111,7 +103,6 @@
       </div>
     </div>
   </div>
-  <!-- Összefoglalás és mentés -->
   <div class="form-actions" *ngIf="selectedSports.size > 0">
     <button 
       type="button" 
@@ -128,7 +119,6 @@
     </button>
   </div>
 
-  <!-- Üres állapot -->
   <div class="empty-state" *ngIf="!loading && selectedSports.size === 0">
     <p>Még nem választottál sportágat. Kattints bármelyikre a hozzáadáshoz!</p>
   </div>

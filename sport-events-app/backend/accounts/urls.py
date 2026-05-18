@@ -31,7 +31,7 @@ urlpatterns = [
     # Sport types
     path('sports/', SportTypeListView.as_view(), name='sport-type-list'),
 
-    # Sport preferences (egyedi CRUD)
+    # Sport preferences 
     path('sport-preferences/bulk-update/', SportPreferenceBulkUpdateView.as_view(), name='sport-preference-bulk-update'),
     path('sport-preferences/ai-suggest/', SportPreferenceAiSuggestView.as_view(), name='sport-preference-ai-suggest'),
     path('sport-preferences/', UserSportPreferenceListCreateView.as_view(), name='sport-preference-list'),

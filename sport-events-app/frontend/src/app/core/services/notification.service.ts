@@ -18,11 +18,16 @@ export interface AppNotification {
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
   private apiUrl = `${environment.apiUrl}/notifications`;
+  
   private unreadCountSubject = new BehaviorSubject<number>(0);
+  
   public unreadCount$ = this.unreadCountSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
+  /** 
+   * Lekéri a felhasználó összes értesítését a szerverről. 
+   */
   getNotifications(): Observable<AppNotification[]> {
     return this.http.get<any>(`${this.apiUrl}/`).pipe(
       map(response => {
@@ -37,18 +42,27 @@ export class NotificationService {
     );
   }
 
+  /** 
+   * Lekéri az olvasatlan értesítések számát és frissíti a belső számlálót. 
+   */
   getUnreadCount(): Observable<{ unread_count: number }> {
     return this.http.get<{ unread_count: number }>(`${this.apiUrl}/unread-count/`).pipe(
       tap(res => this.unreadCountSubject.next(res.unread_count))
     );
   }
 
+  /** 
+   * Az összes meglévő értesítést olvasottnak jelöli. 
+   */
   markAllRead(): Observable<any> {
     return this.http.post(`${this.apiUrl}/mark-all-read/`, {}).pipe(
       tap(() => this.unreadCountSubject.next(0))
     );
   }
 
+  /** 
+   * Egy konkrét értesítést olvasottnak jelöl az azonosítója alapján. 
+   */
   markRead(id: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/${id}/mark-read/`, {}).pipe(
       tap(() => {
@@ -58,6 +72,9 @@ export class NotificationService {
     );
   }
 
+  /** 
+   * Elindítja az olvasatlan értesítések számának lekérdezését 30 másodpercenként. 
+   */
   startPolling(): void {
     this.getUnreadCount().subscribe();
     interval(30000).pipe(

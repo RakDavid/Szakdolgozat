@@ -33,7 +33,7 @@
   color: #666;
 }
 
-/* Tabs */
+/* Tabok */
 .tabs {
   display: flex;
   width: 100%; 
@@ -67,7 +67,7 @@
   border-bottom-color: #667eea;
 }
 
-/* Tab Content */
+/* Tab tartalom */
 .tab-content {
   animation: fadeIn 0.3s;
 }
@@ -77,7 +77,7 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Events Grid */
+/* Események csempe */
 .events-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -293,7 +293,7 @@
   color: #667eea;
 }
 
-/* Empty State */
+/* Üres állapot */
 .empty-state {
   text-align: center;
   padding: 80px 20px;
@@ -317,7 +317,7 @@
   margin-bottom: 30px;
 }
 
-/* Loading */
+/* Töltés */
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -340,7 +340,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* Buttons */
+/* Gombok */
 .btn {
   padding: 14px 28px;
   border-radius: 8px;
@@ -361,7 +361,7 @@
   box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
 }
 
-/* Alert messages */
+/* Figyelmeztető üzenetek */
 .alert {
   padding: 14px 20px;
   border-radius: 8px;
@@ -381,7 +381,7 @@
   border: 1px solid #ef9a9a;
 }
 
-/* Pending list */
+/* Várólista */
 .pending-list {
   display: flex;
   flex-direction: column;
@@ -485,7 +485,7 @@
   flex-shrink: 0;
 }
 
-/* Extra button styles */
+/* Extra gombstílusok */
 .btn-success {
   background: #2e7d32;
   color: white;
@@ -566,7 +566,6 @@
 .badge-status-small.completed { background-color: #e2e8f0; color: #4a5568; border: 1px solid #cbd5e0; }
 .badge-status-small.cancelled { background-color: #fed7d7; color: #c53030; border: 1px solid #feb2b2; }
 
-/* Responsive */
 @media (max-width: 600px) {
   .pending-participant {
     flex-wrap: wrap;

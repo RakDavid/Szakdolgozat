@@ -68,6 +68,9 @@ export class EventDetailComponent implements OnInit {
     }
   }
 
+  /**
+   * Betölti az esemény részletes adatait az azonosító alapján.
+   */
   loadEventDetails(eventId: number): void {
     this.loading = true;
     this.eventService.getEventById(eventId).subscribe({
@@ -85,6 +88,9 @@ export class EventDetailComponent implements OnInit {
     });
   }
 
+  /**
+   * Lekéri a kiválasztott eseményhez tartozó résztvevők listáját.
+   */
   loadParticipants(eventId: number): void {
     this.eventService.getEventParticipants(eventId).subscribe({
       next: (participants) => {
@@ -96,12 +102,18 @@ export class EventDetailComponent implements OnInit {
     });
   }
 
+  /**
+   * Megnyitja vagy bezárja a csatlakozási űrlapot.
+   */
   toggleJoinForm(): void {
     this.showJoinForm = !this.showJoinForm;
     this.errorMessage = '';
   }
 
- joinEvent(): void {
+  /**
+   * Elküldi a felhasználó jelentkezését az aktuális eseményre.
+   */
+  joinEvent(): void {
     if (!this.event) return;
 
     const extraGuests = this.hasFriends ? (this.friendsCount || 1) : 0;
@@ -158,6 +170,9 @@ export class EventDetailComponent implements OnInit {
     });
   }
 
+  /**
+   * Lemondja a felhasználó részvételét az adott eseményen.
+   */
   leaveEvent(): void {
     if (!this.event) return;
 
@@ -189,13 +204,19 @@ export class EventDetailComponent implements OnInit {
     );
   }
 
+  /**
+   * Átirányítja a felhasználót az esemény szerkesztő oldalára.
+   */
   editEvent(): void {
     if (this.event) {
       this.router.navigate(['/events', this.event.id, 'edit']);
     }
   }
 
- deleteEvent(): void {
+  /**
+   * Törli az eseményt egy megerősítő ablak után.
+   */
+  deleteEvent(): void {
     if (!this.event) return;
 
     this.openConfirmModal(
@@ -220,7 +241,10 @@ export class EventDetailComponent implements OnInit {
     );
   }
 
- canJoinEvent(): boolean {
+  /**
+   * Ellenőrzi, hogy a felhasználó csatlakozhat-e az eseményhez.
+   */
+  canJoinEvent(): boolean {
     if (!this.event) return false;
     if (this.isCreator) return false;
     if (this.event.is_full || this.event.is_past || this.event.status !== 'upcoming') {
@@ -236,6 +260,9 @@ export class EventDetailComponent implements OnInit {
     return true;
   }
 
+  /**
+   * Ellenőrzi, hogy a felhasználó jogosult-e értékelni az eseményt.
+   */
   canRateEvent(): boolean {
     if (!this.event || this.isCreator) return false;
 
@@ -249,15 +276,24 @@ export class EventDetailComponent implements OnInit {
     return isConfirmed && this.isEventFinishedOrStarted && !this.hasRated();
   }
 
+  /**
+   * Visszaadja, hogy a felhasználó lemondhatja-e a meglévő részvételét.
+   */
   canLeaveEvent(): boolean {
     return (this.event?.user_participation_status?.can_cancel && !this.event?.is_past) || false;
   }
 
-    get pendingParticipants() {
+  /**
+   * Visszaadja a jóváhagyásra váró résztvevők listáját.
+   */
+  get pendingParticipants() {
     return this.participants.filter(p => p.status === 'pending');
   }
 
- approveParticipant(participantId: number): void {
+  /**
+   * Jóváhagyja egy adott résztvevő jelentkezését az eseményre.
+   */
+  approveParticipant(participantId: number): void {
     if (!this.event) return;
     const participantToApprove = this.participants.find(p => p.id === participantId);
     const extraGuests = participantToApprove?.extra_guests || 0;
@@ -282,7 +318,10 @@ export class EventDetailComponent implements OnInit {
       });
   }
 
- rejectParticipant(participantId: number): void {
+  /**
+   * Elutasítja egy adott résztvevő jelentkezését egy megerősítő ablak után.
+   */
+  rejectParticipant(participantId: number): void {
     if (!this.event) return;
     
     this.openConfirmModal(
@@ -304,6 +343,9 @@ export class EventDetailComponent implements OnInit {
     );
   }
 
+  /**
+   * Formázott magyar dátumot készít a megadott ISO dátumsztringből.
+   */
   getEventDate(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleDateString('hu-HU', { 
@@ -314,6 +356,9 @@ export class EventDetailComponent implements OnInit {
     });
   }
 
+  /**
+   * Formázott időpontot készít a megadott ISO dátumsztringből.
+   */
   getEventTime(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleTimeString('hu-HU', { 
@@ -322,6 +367,9 @@ export class EventDetailComponent implements OnInit {
     });
   }
 
+  /**
+   * Rövidebb formátumúra alakítja a teljes címet, csak a lényeget megtartva.
+   */
   formatShortAddress(address: string | undefined): string {
     if (!address) return '';
     
@@ -334,6 +382,9 @@ export class EventDetailComponent implements OnInit {
     return address;
   }
 
+  /**
+   * Visszaadja a nehézségi szint olvasható, magyar megfelelőjét.
+   */
   getDifficultyLabel(difficulty: string): string {
     const labels: { [key: string]: string } = {
       'easy': 'Kezdő',
@@ -343,6 +394,9 @@ export class EventDetailComponent implements OnInit {
     return labels[difficulty] || difficulty;
   }
 
+  /**
+   * Visszaadja az esemény státuszának olvasható, magyar megfelelőjét.
+   */
   getStatusLabel(status: string): string {
     const labels: { [key: string]: string } = {
       'upcoming': 'Közelgő',
@@ -353,6 +407,9 @@ export class EventDetailComponent implements OnInit {
     return labels[status] || status;
   }
 
+  /**
+   * Dinamikus háttérképet generál az esemény fejléce számára a sportág alapján.
+   */
   getDynamicBackground(sportName: string | undefined): string {
     let imageUrl = 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211';
 
@@ -398,6 +455,9 @@ export class EventDetailComponent implements OnInit {
     return `linear-gradient(rgba(26, 32, 44, 0.7), rgba(45, 55, 72, 0.8)), url('${imageUrl}?auto=format&fit=crop&w=1920&q=80')`;
   }
 
+  /**
+   * Visszaadja a résztvevő státuszának magyar megfelelőjét.
+   */
   getParticipantStatusLabel(status: string): string {
     const labels: { [key: string]: string } = {
       'pending': 'Függőben',
@@ -408,19 +468,31 @@ export class EventDetailComponent implements OnInit {
     return labels[status] || status;
   }
 
+  /**
+   * Térkép URL-t generál az esemény koordinátái alapján.
+   */
   getMapUrl(): string {
     if (!this.event) return '';
     return `https://www.google.com/maps/search/?api=1&query=${this.event.latitude},${this.event.longitude}`;
   }
 
+  /**
+   * Beállítja az értékeléshez kiválasztott csillagok számát.
+   */
   setRating(val: number): void {
     this.selectedRating = val;
   }
 
+  /**
+   * Ellenőrzi, hogy az esemény már elkezdődött-e vagy befejeződött.
+   */
   get isEventFinishedOrStarted(): boolean {
     return this.event?.status === 'ongoing' || this.event?.status === 'completed' || !!this.event?.is_past;
   }
 
+  /**
+   * Megvizsgálja, hogy a jelenleg bejelentkezett felhasználó értékelte-e már az eseményt.
+   */
   hasRated(): boolean {
     if (!this.event || !this.currentUserId) return false;
     
@@ -432,7 +504,10 @@ export class EventDetailComponent implements OnInit {
     return !!(myParticipant && myParticipant.rating);
   }
 
- submitRating(): void {
+  /**
+   * Beküldi a felhasználó értékelését és a hozzá fűzött visszajelzést a szervernek.
+   */
+  submitRating(): void {
     if (!this.event) return;
     if (this.selectedRating < 1 || this.selectedRating > 5) return;
     
@@ -456,6 +531,9 @@ export class EventDetailComponent implements OnInit {
     });
   }
 
+  /**
+   * Megnyit egy megerősítő modális ablakot a megadott címmel, szöveggel és művelettel.
+   */
   openConfirmModal(title: string, message: string, icon: string, btnText: string, btnClass: string, action: () => void) {
     this.confirmTitle = title;
     this.confirmMessage = message;
@@ -466,10 +544,16 @@ export class EventDetailComponent implements OnInit {
     this.showConfirmModal = true;
   }
 
+  /**
+   * Bezárja a megerősítő ablakot anélkül, hogy végrehajtaná a műveletet.
+   */
   cancelConfirm() {
     this.showConfirmModal = false;
   }
 
+  /**
+   * Végrehajtja a megerősített műveletet, majd bezárja a modális ablakot.
+   */
   executeConfirm() {
     this.showConfirmModal = false;
     this.confirmAction();

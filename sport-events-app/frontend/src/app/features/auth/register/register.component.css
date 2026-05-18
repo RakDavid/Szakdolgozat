@@ -162,7 +162,6 @@
   text-decoration: underline;
 }
 
-/* Scrollbar styling */
 .auth-card::-webkit-scrollbar {
   width: 8px;
 }

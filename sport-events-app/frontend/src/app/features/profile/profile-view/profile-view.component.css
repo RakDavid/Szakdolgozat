@@ -4,7 +4,7 @@
   font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* Profile Header */
+/* Profil teteje */
 .profile-header {
   background: white;
   box-shadow: 0 4px 25px rgba(0, 0, 0, 0.04); 
@@ -101,7 +101,7 @@
   padding-bottom: 15px;
 }
 
-/* Alert */
+/* Értesítés */
 .alert {
   max-width: 1200px;
   margin: 20px auto;
@@ -116,7 +116,7 @@
   border-left: 4px solid #f56565;
 }
 
-/* Profile Content */
+/* Profil Kontent */
 .profile-content {
   max-width: 1200px;
   margin: 40px auto;
@@ -132,7 +132,7 @@
   gap: 30px;
 }
 
-/* Section Cards - Finomítva */
+/* Szekció kártya */
 .section-card, .sidebar-card {
   background: white;
   padding: 35px;
@@ -176,7 +176,7 @@
   border: 1px dashed #cbd5e0;
 }
 
-/* Sport Preferences - Interaktív kártyák */
+/* Sport Preferenciák */
 .preferences-list {
   display: flex;
   flex-direction: column;
@@ -282,7 +282,7 @@
   font-size: 15px;
 }
 
-/* Statistics */
+/* Statisztikák */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -328,7 +328,7 @@
   font-weight: 500;
 }
 
-/* Clickable Stat Items */
+/* Kattintható */
 .stat-item.clickable {
   cursor: pointer;
 }
@@ -340,7 +340,7 @@
   box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
 }
 
-/* Dropdown Lists */
+/* Lenyíló */
 .stats-dropdown {
   margin-top: 25px;
   padding-top: 20px;
@@ -384,7 +384,7 @@
   padding-right: 5px;
 }
 
-/* Scrollbar stílus a listához */
+/* Görgethető */
 .dropdown-list::-webkit-scrollbar {
   width: 6px;
 }
@@ -455,14 +455,14 @@
   border-radius: 10px;
 }
 
-/* Sidebar */
+/* Oldalsáv */
 .profile-sidebar {
   display: flex;
   flex-direction: column;
   gap: 30px;
 }
 
-/* Contact Info */
+/* Kontakt */
 .contact-list {
   display: flex;
   flex-direction: column;
@@ -495,7 +495,7 @@
   word-break: break-all;
 }
 
-/* Location Info */
+/* Helyszín */
 .location-info {
   display: flex;
   gap: 15px;
@@ -563,7 +563,7 @@
   font-size: 15px;
 }
 
-/* Buttons */
+/* Gombok */
 .btn {
   padding: 12px 28px;
   border-radius: 10px;
@@ -621,7 +621,7 @@
   border-color: #667eea;
 }
 
-/* Loading */
+/* Töltés */
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -680,7 +680,6 @@
   to { transform: rotate(360deg); }
 }
 
-/* Responsive */
 @media (max-width: 968px) {
   .profile-content {
     grid-template-columns: 1fr;

@@ -53,6 +53,9 @@ export class EventListComponent implements OnInit {
     this.loadEvents();
   }
 
+  /**
+   * Betölti a szűrőhöz szükséges elérhető sportágakat a szerverről.
+   */
   loadSportTypes(): void {
     this.sportTypeService.getAllSportTypes().subscribe({
       next: (types) => {
@@ -69,6 +72,9 @@ export class EventListComponent implements OnInit {
     });
   }
 
+  /**
+   * Lekéri az események listáját a beállított szűrők és lapozás alapján.
+   */
   loadEvents(): void {
     this.loading = true;
     
@@ -100,11 +106,17 @@ export class EventListComponent implements OnInit {
     });
   }
 
+  /**
+   * Alkalmazza a beállított szűrőket és újratölti az eseményeket az első oldaltól.
+   */
   applyFilters(): void {
     this.currentPage = 1;
     this.loadEvents();
   }
 
+  /**
+   * Visszaállítja a szűrőket az alapértelmezett állapotra, majd újratölti a listát.
+   */
   resetFilters(): void {
     this.filters = {
       search: '',
@@ -119,6 +131,9 @@ export class EventListComponent implements OnInit {
     this.loadEvents();
   }
 
+  /**
+   * Betölti a következő oldalt a találati listában.
+   */
   nextPage(): void {
     if (this.hasNext) {
       this.currentPage++;
@@ -127,6 +142,9 @@ export class EventListComponent implements OnInit {
     }
   }
 
+  /**
+   * Visszalép az előző oldalra a találati listában.
+   */
   previousPage(): void {
     if (this.hasPrevious) {
       this.currentPage--;
@@ -135,6 +153,9 @@ export class EventListComponent implements OnInit {
     }
   }
 
+  /**
+   * Be- vagy kikapcsolja a helyalapú keresést, és szükség esetén lekéri a pozíciót.
+   */
   toggleLocationSearch(): void {
     if (this.useLocation && !this.userLocation) {
       this.getCurrentLocation();
@@ -143,6 +164,9 @@ export class EventListComponent implements OnInit {
     }
   }
 
+  /**
+   * Lekéri a felhasználó aktuális földrajzi helyzetét a böngészőből.
+   */
   getCurrentLocation(): void {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -164,6 +188,9 @@ export class EventListComponent implements OnInit {
     }
   }
 
+  /**
+   * Visszaadja az esemény státuszának olvasható, magyar megfelelőjét.
+   */
   getStatusLabel(status: string): string {
     const labels: { [key: string]: string } = {
       'upcoming': 'Közelgő',
@@ -174,6 +201,9 @@ export class EventListComponent implements OnInit {
     return labels[status] || status;
   }
 
+  /**
+   * Formázott magyar dátumot készít (hónap, nap) az ISO dátumsztringből.
+   */
   getEventDate(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleDateString('hu-HU', { 
@@ -182,6 +212,9 @@ export class EventListComponent implements OnInit {
     });
   }
 
+  /**
+   * Formázott időpontot készít (óra, perc) az ISO dátumsztringből.
+   */
   getEventTime(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleTimeString('hu-HU', { 
@@ -190,6 +223,9 @@ export class EventListComponent implements OnInit {
     });
   }
 
+  /**
+   * Visszaadja a nehézségi szint olvasható, magyar megfelelőjét.
+   */
   getDifficultyLabel(difficulty: string): string {
     const labels: { [key: string]: string } = {
       'easy': 'Kezdő',
@@ -199,10 +235,16 @@ export class EventListComponent implements OnInit {
     return labels[difficulty] || difficulty;
   }
 
+  /**
+   * Vált a listás és a térképes nézet között.
+   */
   switchViewMode(mode: 'list' | 'map'): void {
   this.viewMode = mode;
 }
 
+  /**
+   * Frissíti a térképen megjelenő jelölőket (markereket) a betöltött események alapján.
+   */
   updateMapMarkers(): void {
     this.mapMarkers = this.events.map(event => ({
       lat: event.latitude,

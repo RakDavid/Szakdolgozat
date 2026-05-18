@@ -1,4 +1,4 @@
-// User models
+// Felhasználói modellek
 export interface User {
   id: number;
   username: string;
@@ -64,7 +64,7 @@ export interface ChangePassword {
   new_password2: string;
 }
 
-// Sport Type models
+// Sportág típus modellek
 export interface SportType {
   id: number;
   name: string;
@@ -74,7 +74,7 @@ export interface SportType {
   created_at: string;
 }
 
-// User Sport Preference models
+// Felhasználói sportpreferencia modellek
 export interface UserSportPreference {
   id: number;
   sport_type: number;
@@ -91,7 +91,7 @@ export interface CreateUserSportPreference {
   interest_level: number;
 }
 
-// Event models
+// Esemény modellek
 export interface SportEvent {
   id: number;
   title: string;
@@ -157,7 +157,7 @@ export interface CreateSportEvent {
   notes?: string;
 }
 
-// Event Participant models
+// Esemény résztvevő modellek
 export interface EventParticipant {
   id: number;
   user: number;
@@ -184,7 +184,7 @@ export interface RateEvent {
   feedback?: string;
 }
 
-// Event Image models
+// Esemény kép modellek
 export interface EventImage {
   id: number;
   image: string;
@@ -193,7 +193,7 @@ export interface EventImage {
   uploaded_at: string;
 }
 
-// API Response wrappers
+// API wrappers
 export interface PaginatedResponse<T> {
   count: number;
   next?: string;
@@ -207,7 +207,7 @@ export interface ApiError {
   [key: string]: any;
 }
 
-// Query params for filtering
+// URL lekérdezési paraméterek a szűréshez
 export interface EventFilterParams {
   sport_type?: number;
   status?: string;
@@ -224,7 +224,7 @@ export interface EventFilterParams {
   page?: number;
 }
 
-// Location helper
+// Helyszín segédmodell
 export interface Location {
   latitude: number;
   longitude: number;

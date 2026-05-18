@@ -57,6 +57,9 @@ export class ProfileViewComponent implements OnInit {
     }
   }
 
+  /**
+   * Betölti egy másik felhasználó publikus profiladatait az azonosítója alapján.
+   */
   loadPublicProfile(id: number): void {
     this.loading = true;
     this.userService.getUserById(id).subscribe({
@@ -79,6 +82,9 @@ export class ProfileViewComponent implements OnInit {
     });
   }
 
+  /**
+   * Lekéri az elérhető sportágak listáját a szerverről.
+   */
   loadSportTypes(): void {
     this.sportTypeService.getAllSportTypes().subscribe({
       next: (types) => {
@@ -88,11 +94,17 @@ export class ProfileViewComponent implements OnInit {
     });
   }
 
+  /**
+   * Visszaadja a sportág nevét a megadott azonosító alapján.
+   */
   getSportName(sportId: number): string {
     const sport = this.sportTypes.find(s => s.id === sportId);
     return sport ? sport.name : 'Ismeretlen sportág';
   }
 
+  /**
+   * Visszaadja a sportághoz tartozó megfelelő emojit/ikont a név alapján.
+   */
   getSportIcon(sportId: number): string {
     const icons: { [key: string]: string } = {
       'Futás': '🏃', 'Kerékpározás': '🚴', 'Úszás': '🏊', 'Foci': '⚽',
@@ -103,6 +115,9 @@ export class ProfileViewComponent implements OnInit {
     return icons[name] || '🎯';
   }
 
+  /**
+   * Betölti az aktuálisan bejelentkezett felhasználó saját profiladatait.
+   */
   loadUserProfile(): void {
     this.userService.getUserProfile().subscribe({
       next: (user) => {
@@ -125,10 +140,16 @@ export class ProfileViewComponent implements OnInit {
     });
   }
 
+  /**
+   * Átirányítja a felhasználót a profil szerkesztése oldalra.
+   */
   editProfile(): void {
     this.router.navigate(['/profile/edit']);
   }
 
+  /**
+   * Visszaadja a tudásszint olvasható, magyar megfelelőjét.
+   */
   getSkillLevelLabel(level: string): string {
     const labels: { [key: string]: string } = {
       'beginner': 'Kezdő',
@@ -138,6 +159,9 @@ export class ProfileViewComponent implements OnInit {
     return labels[level] || level;
   }
 
+  /**
+   * Generál egy monogramot a felhasználó neve vagy felhasználóneve alapján a profilképhez.
+   */
   getUserInitials(): string {
     if (!this.user) return '';
     
@@ -147,6 +171,9 @@ export class ProfileViewComponent implements OnInit {
     return (lastInitial + firstInitial).toUpperCase() || this.user.username.charAt(0).toUpperCase();
   }
 
+  /**
+   * Formázott magyar dátumot készít a regisztráció idejéből.
+   */
   getMemberSince(): string {
     if (!this.user) return '';
     
@@ -157,6 +184,9 @@ export class ProfileViewComponent implements OnInit {
     });
   }
 
+  /**
+   * Megjeleníti vagy elrejti a felhasználó által szervezett eseményeket, és szükség esetén betölti azokat.
+   */
   toggleCreatedEvents(): void {
     if (!this.isOwnProfile) return;
     this.showCreated = !this.showCreated;
@@ -178,6 +208,9 @@ export class ProfileViewComponent implements OnInit {
     }
   }
 
+  /**
+   * Megjeleníti vagy elrejti azokat az eseményeket, amelyeken a felhasználó részt vesz, és szükség esetén betölti azokat.
+   */
   toggleParticipatedEvents(): void {
     if (!this.isOwnProfile) return;
     this.showParticipated = !this.showParticipated;
@@ -199,6 +232,9 @@ export class ProfileViewComponent implements OnInit {
     }
   }
 
+  /**
+   * Visszaadja az esemény státuszának olvasható, magyar megfelelőjét.
+   */
   getStatusLabel(status: string): string {
     const labels: { [key: string]: string } = {
       'upcoming': 'Közelgő',
@@ -209,6 +245,9 @@ export class ProfileViewComponent implements OnInit {
     return labels[status] || status;
   }
 
+  /**
+   * Kiválasztja és visszaadja a felhasználó kedvenc sportágának nevét a preferenciák alapján.
+   */
   getFavoriteSportName(): string | null {
     if (!this.sportPreferences || this.sportPreferences.length === 0) {
       return null;
@@ -220,6 +259,9 @@ export class ProfileViewComponent implements OnInit {
     return this.getSportName(topSportId);
   }
 
+  /**
+   * Dinamikus háttérképet (vagy színátmenetet) generál a profil fejlécéhez a kedvenc sportág alapján.
+   */
   getBannerBackground(): string {
     const sportName = this.getFavoriteSportName();
     

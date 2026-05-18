@@ -58,6 +58,9 @@ export class HomeComponent implements OnInit {
     }
   }
 
+  /**
+   * Lekéri a legközelebbi, hamarosan induló események listáját.
+   */
   loadUpcomingEvents(): void {
     this.loading = true;
     this.eventService.getEvents({ 
@@ -75,6 +78,9 @@ export class HomeComponent implements OnInit {
     });
   }
 
+  /**
+   * Lekéri a bejelentkezett felhasználó számára személyre szabott, ajánlott eseményeket.
+   */
   loadRecommendedEvents(): void {
     this.loading = true;
     this.eventService.getRecommendedEvents().subscribe({
@@ -93,14 +99,23 @@ export class HomeComponent implements OnInit {
     });
   }
 
+  /**
+   * Átirányítja a felhasználót az összes eseményt listázó oldalra.
+   */
   navigateToEvents(): void {
     this.router.navigate(['/events']);
   }
 
+  /**
+   * Átirányítja a felhasználót az új esemény létrehozása oldalra.
+   */
   navigateToCreateEvent(): void {
     this.router.navigate(['/create-event']);
   }
 
+  /**
+   * Formázott magyar dátumot készít (év, hónap, nap) az ISO dátumsztringből.
+   */
   getEventDate(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleDateString('hu-HU', { 
@@ -110,6 +125,9 @@ export class HomeComponent implements OnInit {
     });
   }
 
+  /**
+   * Formázott időpontot készít (óra, perc) az ISO dátumsztringből.
+   */
   getEventTime(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleTimeString('hu-HU', { 
@@ -118,6 +136,9 @@ export class HomeComponent implements OnInit {
     });
   }
 
+  /**
+   * Visszaadja az esemény státuszának olvasható, magyar megfelelőjét.
+   */
   getStatusLabel(status: string): string {
     const labels: { [key: string]: string } = {
       'upcoming': 'Közelgő',
@@ -128,6 +149,9 @@ export class HomeComponent implements OnInit {
     return labels[status] || status;
   }
 
+  /**
+   * Visszaadja a nehézségi szint olvasható, magyar megfelelőjét.
+   */
   getDifficultyLabel(difficulty: string): string {
     const labels: { [key: string]: string } = {
       'easy': 'Kezdő',

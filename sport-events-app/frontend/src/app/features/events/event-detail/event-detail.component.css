@@ -154,7 +154,6 @@
   align-items: start;
 }
 
-/* Közös kártya stílus */
 .section-card, .action-card {
   background: white;
   border-radius: 16px;
@@ -174,7 +173,7 @@
   border-bottom: 2px solid #edf2f7;
 }
 
-/*BAL OSZLOP (Info Kártyák 4-es rácsban)*/
+/* BAL OSZLOP */
 .info-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -529,7 +528,6 @@ app-map {
 }
 
 /* Modal */
-
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -628,14 +626,14 @@ app-map {
 .summary-label { color: #718096; font-weight: 600; font-size: 14px; }
 .summary-value { font-weight: 700; color: #2d3748; background: #f7fafc; padding: 6px 12px; border-radius: 8px; font-size: 14px; }
 
-/* --- ŰRLAPOK (Csatlakozás) --- */
+/* ŰRLAPOK */
 .join-form { margin-bottom: 20px; }
 .form-group { margin-bottom: 15px; }
 .form-group label { display: block; font-weight: 600; font-size: 14px; color: #4a5568; margin-bottom: 8px; }
 .form-control { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-family: inherit; transition: border-color 0.3s; }
 .form-control:focus { outline: none; border-color: #667eea; }
 
-/* --- GOMBOK --- */
+/* GOMBOK */
 .btn {
   padding: 12px 20px;
   border-radius: 10px;
@@ -668,17 +666,16 @@ app-map {
 .btn-success { background: #48bb78; color: white; }
 .btn-success:hover:not(:disabled) { background: #38a169; }
 
-/* --- ÉRTESÍTÉSEK --- */
+/* ÉRTESÍTÉSEK */
 .alert { max-width: 1200px; margin: 20px auto; padding: 15px 20px; border-radius: 10px; font-weight: 600; }
 .alert-success { background: #f0fff4; color: #276749; border-left: 4px solid #48bb78; }
 .alert-error { background: #fff5f5; color: #c53030; border-left: 4px solid #f56565; }
 
-/* --- TÖLTÉS ANIMÁCIÓ --- */
+/* TÖLTÉS ANIMÁCIÓ */
 .loading-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; gap: 20px; }
 .spinner { width: 50px; height: 50px; border: 4px solid #edf2f7; border-top: 4px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* --- MOBIL NÉZET --- */
 @media (max-width: 992px) {
   .event-content {
     grid-template-columns: 1fr;

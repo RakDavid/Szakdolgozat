@@ -76,10 +76,16 @@ export class ProfileEditComponent implements OnInit {
     });
   }
 
+  /**
+   * Vált a különböző beállítási nézetek (fülek) között.
+   */
   setTab(tab: 'personal' | 'preferences' | 'password'): void {
     this.activeTab = tab;
   }
 
+  /**
+   * Lekéri az elérhető sportágak listáját a szerverről.
+   */
   loadSportTypes(): void {
     this.sportTypeService.getAllSportTypes().subscribe({
       next: (types) => {
@@ -96,6 +102,9 @@ export class ProfileEditComponent implements OnInit {
     });
   }
 
+  /**
+   * Betölti az aktuális felhasználó profiladatait és kitölti velük az űrlapot.
+   */
   loadUserProfile(): void {
     this.userService.getUserProfile().subscribe({
       next: (user) => {
@@ -110,6 +119,9 @@ export class ProfileEditComponent implements OnInit {
     });
   }
 
+  /**
+   * Lekéri a felhasználó elmentett sportág preferenciáit.
+   */
   loadSportPreferences(): void {
     this.userService.getSportPreferences().subscribe({
       next: (preferences) => {
@@ -121,6 +133,9 @@ export class ProfileEditComponent implements OnInit {
     });
   }
 
+  /**
+   * Inicializálja a személyes adatokat tartalmazó reaktív űrlapot és validációit.
+   */
   initForm(): void {
     this.profileForm = this.fb.group({
       first_name: ['', [Validators.required, Validators.minLength(2)]],
@@ -135,6 +150,9 @@ export class ProfileEditComponent implements OnInit {
     });
   }
 
+  /**
+   * Feltölti a profil űrlapot a szerverről kapott felhasználói adatokkal.
+   */
   populateForm(): void {
     if (this.user) {
       this.profileForm.patchValue({
@@ -157,10 +175,16 @@ export class ProfileEditComponent implements OnInit {
     }
   }
 
+  /**
+   * Getter a profil űrlap vezérlőelemeinek egyszerűbb eléréséhez a template-ben.
+   */
   get f() {
     return this.profileForm.controls;
   }
 
+  /**
+   * Kezeli a profilkép kiválasztását és megjeleníti az előnézetet.
+   */
   onFileSelected(event: any): void {
     const file = event.target.files[0];
     if (file) {
@@ -174,6 +198,9 @@ export class ProfileEditComponent implements OnInit {
     }
   }
 
+  /**
+   * Lekéri a felhasználó jelenlegi földrajzi helyzetét a böngészőből.
+   */
   getCurrentLocation(): void {
     if (navigator.geolocation) {
       this.profileForm.patchValue({ default_location_name: 'Helyzet meghatározása...' });
@@ -214,6 +241,9 @@ export class ProfileEditComponent implements OnInit {
     }
   }
 
+  /**
+   * Megnyitja a megerősítő ablakot a felhasználói fiók végleges törléséhez.
+   */
   deleteMyProfile(): void {
     this.openConfirmModal(
       'Profil törlése',
@@ -236,6 +266,9 @@ export class ProfileEditComponent implements OnInit {
     );
   }
 
+  /**
+   * Cím alapján megkeresi a pontos földrajzi koordinátákat.
+   */
   searchLocationByAddress(): void {
     const address = this.profileForm.get('default_location_name')?.value;
     
@@ -262,6 +295,9 @@ export class ProfileEditComponent implements OnInit {
     });
   }
 
+  /**
+   * Kiválaszt egy eredményt a címkereső listájából és kitölti a mezőket.
+   */
   selectGeocodingResult(result: GeocodingResult): void {
     const detailedAddress = result.display_name.split(',').slice(0, 3).join(',').trim();
 
@@ -275,10 +311,16 @@ export class ProfileEditComponent implements OnInit {
     this.geocodingResults = [];
   }
 
+  /**
+   * Bezárja a helyszínkereső találati listáját.
+   */
   closeGeocodingResults(): void {
     this.showGeocodingResults = false;
   }
 
+  /**
+   * Elküldi a frissített profiladatokat (és az esetleges új képet) a szervernek.
+   */
   onSubmit(): void {
     if (this.profileForm.invalid) {
       this.toastService.showError('Kérlek, töltsd ki helyesen a kötelező mezőket!');
@@ -334,6 +376,9 @@ export class ProfileEditComponent implements OnInit {
     });
   }
 
+  /**
+   * Inicializálja a jelszómódosító űrlapot és annak validációit.
+   */
   initPasswordForm(): void {
     this.passwordForm = this.fb.group({
       old_password: ['', Validators.required],
@@ -342,16 +387,25 @@ export class ProfileEditComponent implements OnInit {
     }, { validators: this.passwordMatchValidator });
   }
 
+  /**
+   * Egyedi validátor, ami ellenőrzi, hogy a megadott új jelszavak megegyeznek-e.
+   */
   passwordMatchValidator(g: FormGroup) {
     return g.get('new_password')?.value === g.get('confirm_password')?.value
       ? null : { mismatch: true };
   }
 
+  /**
+   * Getter a jelszómódosító űrlap vezérlőelemeinek egyszerűbb eléréséhez a template-ben.
+   */
   get p() {
     return this.passwordForm.controls;
   }
 
- onPasswordSubmit(): void {
+  /**
+   * Elküldi a jelszóváltoztatási kérelmet a szervernek.
+   */
+  onPasswordSubmit(): void {
     if (this.passwordForm.invalid) {
       this.toastService.showError('Kérlek, ellenőrizd a megadott jelszavakat!');
       Object.keys(this.passwordForm.controls).forEach(key => {
@@ -387,7 +441,12 @@ export class ProfileEditComponent implements OnInit {
   }
 
   addSportPreference(): void {}
+
   deleteSportPreference(id: number): void {}
+
+  /**
+   * Visszaadja a tudásszint olvasható, magyar megfelelőjét.
+   */
   getSkillLevelLabel(level: string): string {
     const labels: { [key: string]: string } = {
       'beginner': 'Kezdő',
@@ -397,6 +456,9 @@ export class ProfileEditComponent implements OnInit {
     return labels[level] || level;
   }
 
+  /**
+   * Megnyit egy megerősítő modális ablakot a megadott paraméterekkel.
+   */
   openConfirmModal(title: string, message: string, icon: string, btnText: string, btnClass: string, action: () => void) {
     this.confirmTitle = title;
     this.confirmMessage = message;
@@ -407,10 +469,16 @@ export class ProfileEditComponent implements OnInit {
     this.showConfirmModal = true;
   }
 
+  /**
+   * Bezárja a megerősítő ablakot a művelet végrehajtása nélkül.
+   */
   cancelConfirm() {
     this.showConfirmModal = false;
   }
 
+  /**
+   * Végrehajtja a megerősített műveletet, majd bezárja a modális ablakot.
+   */
   executeConfirm() {
     this.showConfirmModal = false;
     this.confirmAction();

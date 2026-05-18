@@ -4,7 +4,6 @@
     <p>Találd meg a tökéletes eseményt a közeledben</p>
   </div>
 
-  <!-- Filters Section -->
   <div class="filters-container">
     <div class="filters-header">
       <h3>Szűrők</h3>
@@ -12,7 +11,6 @@
     </div>
 
     <div class="filters-grid">
-      <!-- Search -->
       <div class="filter-group full-width">
         <label>Keresés</label>
         <input
@@ -24,7 +22,6 @@
         />
       </div>
 
-      <!-- Sport Type -->
       <div class="filter-group">
         <label>Sportág</label>
         <select
@@ -39,7 +36,6 @@
         </select>
       </div>
 
-      <!-- Status -->
       <div class="filter-group">
         <label>Státusz</label>
         <select
@@ -53,7 +49,6 @@
         </select>
       </div>
 
-      <!-- Difficulty -->
       <div class="filter-group">
         <label>Nehézség</label>
         <select
@@ -68,7 +63,6 @@
         </select>
       </div>
 
-      <!-- Is Free -->
       <div class="filter-group">
         <label>Típus</label>
         <select
@@ -82,7 +76,6 @@
         </select>
       </div>
 
-      <!-- Ordering -->
       <div class="filter-group">
         <label>Rendezés</label>
         <select
@@ -97,7 +90,6 @@
         </select>
       </div>
 
-      <!-- Location Search -->
       <div class="filter-group full-width">
         <div class="location-filter">
           <label class="checkbox-label">
@@ -124,14 +116,12 @@
     </div>
   </div>
 
-  <!-- Results -->
   <div class="results-section">
     <div class="results-header">
       <p class="results-count">
         <strong>{{ totalCount }}</strong> esemény található
       </p>
       
-      <!-- View Mode Toggle -->
       <div class="view-toggle">
         <button 
           class="view-btn" 
@@ -150,20 +140,17 @@
       </div>
     </div>
 
-    <!-- Loading -->
     <div *ngIf="loading" class="loading-container">
       <div class="spinner"></div>
       <p>Események betöltése...</p>
     </div>
 
-    <!-- Events Grid -->
      <div *ngIf="!loading && events.length > 0 && viewMode === 'list'" class="events-grid">
       <div
         *ngFor="let event of events"
         class="event-card"
         [routerLink]="['/events', event.id]"
       >
-        <!-- Kép vagy térkép -->
         <div class="event-image-container">
           <div
             *ngIf="event.primary_image"
@@ -249,7 +236,6 @@
       ></app-map>
     </div>
 
-    <!-- No Results -->
     <div *ngIf="!loading && events.length === 0" class="no-results">
       <div class="no-results-icon">🔍</div>
       <h3>Nincs találat</h3>

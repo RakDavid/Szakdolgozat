@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
 
-
 interface SportType {
   id: number;
   name: string;
@@ -81,12 +80,14 @@ export class SportPreferencesComponent implements OnInit {
 
   constructor(private http: HttpClient, private router: Router) {}
 
-
   ngOnInit() {
     this.loadSports();
     this.loadPreferences();
   }
 
+  /**
+   * Lekéri az elérhető sportágak listáját a szerverről és hozzárendeli a megfelelő ikonokat.
+   */
   loadSports() {
     this.http.get<any>('/api/sports/').subscribe({
       next: (res) => {
@@ -101,6 +102,9 @@ export class SportPreferencesComponent implements OnInit {
     });
   }
 
+  /**
+   * Betölti a felhasználó korábban elmentett sportág preferenciáit a szerverről.
+   */
   loadPreferences() {
     this.http.get<any>('/api/sport-preferences/').subscribe({
       next: (res) => {
@@ -110,6 +114,9 @@ export class SportPreferencesComponent implements OnInit {
     });
   }
 
+  /**
+   * Kiválaszt egy sportágat, vagy eltávolítja a kiválasztottak közül, ha már ott volt.
+   */
   toggleSport(sportId: number): void {
     if (this.selectedSports.has(sportId)) {
       this.selectedSports.delete(sportId);
@@ -124,20 +131,32 @@ export class SportPreferencesComponent implements OnInit {
     }
   }
 
+  /**
+   * Visszaadja egy adott sportág aktuális preferenciáit, ha a felhasználó kiválasztotta azt.
+   */
   getPreference(sportId: number): SportPreference | undefined {
     return this.preferences.find(p => p.sport_type === sportId);
   }
 
+  /**
+   * Beállítja a felhasználó tudásszintjét egy adott, kiválasztott sportághoz.
+   */
   setSkillLevel(sportId: number, level: 'beginner' | 'intermediate' | 'advanced') {
     const pref = this.getPreference(sportId);
     if (pref) pref.skill_level = level;
   }
 
+  /**
+   * Beállítja az érdeklődési szintet (pl. 1-10 skálán) egy adott sportághoz.
+   */
   setInterestLevel(sportId: number, level: number) {
     const pref = this.getPreference(sportId);
     if (pref) pref.interest_level = level;
   }
 
+  /**
+   * Visszaadja az érdeklődési szint számértékének megfelelő olvasható, szöveges értékelést.
+   */
   getInterestLabel(level: number): string {
     if (level <= 3) return 'Kis érdeklődés';
     if (level <= 6) return 'Közepes';
@@ -145,6 +164,9 @@ export class SportPreferencesComponent implements OnInit {
     return 'Szenvedély ❤️';
   }
 
+  /**
+   * Elmenti a beállított sportágakat és a hozzájuk tartozó preferenciákat a szerverre.
+   */
   savePreferences() {
     this.saving = true;
     this.http.post('/api/sport-preferences/bulk-update/', {
@@ -158,10 +180,16 @@ export class SportPreferencesComponent implements OnInit {
     });
   }
   
+  /**
+   * Megjeleníti vagy elrejti a mesterséges intelligencia (AI) alapú ajánló panelt.
+   */
   toggleAiPanel() {
     this.showAiPanel = !this.showAiPanel;
   }
 
+  /**
+   * AI segítségével sportág preferenciákat generál a felhasználó által megadott szöveges leírás alapján.
+   */
   generateWithAi() {
     if (!this.aiDescription.trim()) return;
     this.aiLoading = true;
@@ -178,6 +206,9 @@ export class SportPreferencesComponent implements OnInit {
     });
   }
 
+  /**
+   * Elfogadja és hozzáadja a preferenciákhoz az AI által javasolt sportágakat és beállításokat.
+   */
   applyAiSuggestions() {
     this.aiSuggestions.forEach(suggestion => {
       const existing = this.preferences.find(p => p.sport_type === suggestion.sport_type);
@@ -194,14 +225,23 @@ export class SportPreferencesComponent implements OnInit {
     this.aiDescription = '';
   }
 
+  /**
+   * Visszaadja a sportág nevét a megadott azonosító alapján.
+   */
   getSportName(sportId: number): string {
     return this.sports.find(s => s.id === sportId)?.name || '';
   }
 
+  /**
+   * Visszaadja a sportághoz tartozó ikont az azonosító alapján.
+   */
   getSportIcon(sportId: number): string {
     return this.sports.find(s => s.id === sportId)?.icon || '🎯';
   }
 
+  /**
+   * Visszaadja a tudásszinthez tartozó ikont és magyar címkét (pl. "🌱 Kezdő").
+   */
   getSkillLevelLabel(level: 'beginner' | 'intermediate' | 'advanced'): string {
     const found = this.skillLevels.find(s => s.value === level);
     return found ? `${found.icon} ${found.label}` : level;

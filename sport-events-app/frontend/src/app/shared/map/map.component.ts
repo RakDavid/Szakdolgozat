@@ -47,6 +47,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges
     }
   }
 
+  /**
+   * Létrehozza és beállítja a Leaflet térképet az alapértelmezett koordinátákkal és rétegekkel.
+   */
   private initMap(): void {
     this.map = L.map(this.mapId, {
       center: [this.latitude, this.longitude],
@@ -79,6 +82,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges
     }, 200);
   }
 
+  /**
+   * Hozzáadja az átadott jelölők (markerek) listáját a térképhez, és a láthatóságukhoz igazítja a nézetet.
+   */
   private addMarkers(): void {
     this.markers.forEach(marker => {
       const leafletMarker = L.marker([marker.lat, marker.lng]);
@@ -96,6 +102,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges
     }
   }
 
+  /**
+   * Egyetlen új jelölőt (markert) helyez el a térképen a megadott koordinátákon.
+   */
   private addMarker(lat: number, lng: number, popup?: string): L.Marker {
     const marker = L.marker([lat, lng]);
     
@@ -107,6 +116,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges
     return marker;
   }
 
+  /**
+   * A térképre történő kattintás eseménykezelője, törli a korábbi jelölőket és újat helyez el a kattintás helyén.
+   */
   private onMapClick(e: L.LeafletMouseEvent): void {
     this.markerLayer.clearLayers();
     
@@ -118,6 +130,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges
     console.log('Map clicked:', { lat, lng });
   }
 
+  /**
+   * Kijavítja a Leaflet alapértelmezett ikonjainak betöltési útvonalhibáját Angular környezetben.
+   */
   private fixLeafletIconIssue(): void {
     const iconDefault = L.icon({
       iconUrl: '/marker-icon.png',
@@ -133,18 +148,27 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges
     L.Marker.prototype.options.icon = iconDefault;
   }
 
+  /**
+   * Megváltoztatja a térkép középpontját és nagyítási szintjét a megadott értékekre.
+   */
   public setCenter(lat: number, lng: number, zoom?: number): void {
     if (this.map) {
       this.map.setView([lat, lng], zoom || this.zoom);
     }
   }
 
+  /**
+   * Eltávolítja az összes meglévő jelölőt (markert) a térképről.
+   */
   public clearMarkers(): void {
     if (this.markerLayer) {
       this.markerLayer.clearLayers();
     }
   }
 
+  /**
+   * Frissíti a térképen látható jelölőket: törli a régieket és hozzáadja az újakat.
+   */
   public updateMarkers(markers: Array<{lat: number, lng: number, title?: string, popup?: string}>): void {
     this.clearMarkers();
     this.markers = markers;

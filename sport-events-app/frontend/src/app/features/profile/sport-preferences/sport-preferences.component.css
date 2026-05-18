@@ -1,7 +1,3 @@
-/* ========================================
-   Sport Preferences Component
-   Letisztult, modern kártya-alapú design
-   ======================================== */
 
 .preferences-container {
   max-width: 900px;
@@ -10,7 +6,7 @@
   font-family: 'Segoe UI', system-ui, sans-serif;
 }
 
-/* === HEADER === */
+/* Fejléc */
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -32,7 +28,7 @@
   font-size: 0.9rem;
 }
 
-/* === AI GOMB === */
+/* AI gomb */
 .ai-btn {
   display: flex;
   align-items: center;
@@ -59,7 +55,7 @@
   font-size: 1.1rem;
 }
 
-/* === AI PANEL === */
+/* AI panel */
 .ai-panel {
   overflow: hidden;
   max-height: 0;
@@ -216,7 +212,7 @@
   opacity: 0.9;
 }
 
-/* === LOADING === */
+/* Töltés */
 .loading-state {
   display: flex;
   flex-direction: column;
@@ -239,14 +235,14 @@
   to { transform: rotate(360deg); }
 }
 
-/* === SPORTS GRID === */
+/* Sportok */
 .sports-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 14px;
 }
 
-/* === SPORT CARD === */
+/* Sport kártya */
 .sport-card {
   background: white;
   border: 2px solid #e8e8e8;
@@ -301,7 +297,7 @@
   flex-shrink: 0;
 }
 
-/* === PREFERENCE CONTROLS === */
+/* Preferenciák */
 .pref-controls {
   border-top: 1px solid #e0e7ff;
   padding: 14px 18px 16px;
@@ -357,7 +353,7 @@
   font-weight: 600;
 }
 
-/* Interest slider */
+/* Érdeklődés */
 .interest-value {
   font-weight: 700;
   color: #667eea;
@@ -399,7 +395,7 @@
   margin-top: 4px;
 }
 
-/* === SAVE SECTION === */
+/* Mentés */
 .save-section {
   display: flex;
   justify-content: space-between;
@@ -495,7 +491,7 @@
   cursor: not-allowed;
 }
 
-/* === EMPTY STATE === */
+/* Üres */
 .empty-state {
   text-align: center;
   padding: 40px;
@@ -503,7 +499,7 @@
   font-size: 0.95rem;
 }
 
-/* === LOADING DOTS === */
+/* Töltés (pontok) */
 .loading-dots::after {
   content: '';
   animation: dots 1.5s infinite;
@@ -515,7 +511,6 @@
   60%, 100% { content: '...'; }
 }
 
-/* === RESPONSIVE === */
 @media (max-width: 600px) {
   .section-header {
     flex-direction: column;

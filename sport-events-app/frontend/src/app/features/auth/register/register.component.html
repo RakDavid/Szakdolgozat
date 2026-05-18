@@ -6,12 +6,11 @@
     </div>
 
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form">
-      <!-- Error message -->
+      
       <div *ngIf="errorMessage" class="alert alert-error">
         {{ errorMessage }}
       </div>
 
-      <!-- Username -->
       <div class="form-group">
         <label for="username">Felhasználónév *</label>
         <input
@@ -32,7 +31,6 @@
         </div>
       </div>
 
-      <!-- Email -->
       <div class="form-group">
         <label for="email">Email cím *</label>
         <input
@@ -52,7 +50,6 @@
         </div>
       </div>
 
-      <!-- First Name and Last Name -->
       <div class="form-row">
         <div class="form-group">
           <label for="first_name">Keresztnév *</label>
@@ -87,7 +84,6 @@
         </div>
       </div>
 
-      <!-- Phone -->
       <div class="form-group">
         <label for="phone_number">Telefonszám</label>
         <input
@@ -99,7 +95,6 @@
         />
       </div>
 
-      <!-- Password -->
       <div class="form-group">
         <label for="password">Jelszó *</label>
         <input
@@ -119,7 +114,6 @@
         </div>
       </div>
 
-      <!-- Password confirmation -->
       <div class="form-group">
         <label for="password2">Jelszó megerősítése *</label>
         <input
@@ -138,7 +132,6 @@
         </div>
       </div>
 
-      <!-- Submit button -->
       <button
         type="submit"
         class="btn btn-primary btn-block"
@@ -150,7 +143,6 @@
       </button>
     </form>
 
-    <!-- Login link -->
     <div class="auth-footer">
       <p>Már van fiókod? <a routerLink="/login">Jelentkezz be</a></p>
     </div>

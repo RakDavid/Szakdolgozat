@@ -4,11 +4,9 @@
     <p>A létrehozott és a jelentkezett eseményeid egy helyen</p>
   </div>
 
-  <!-- Üzenetek -->
   <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
   <div *ngIf="errorMessage" class="alert alert-error">{{ errorMessage }}</div>
 
-  <!-- Tabs -->
   <div class="tabs">
     <button
       class="tab-button"
@@ -33,13 +31,11 @@
     </button>
   </div>
 
-  <!-- Loading -->
   <div *ngIf="loading" class="loading-container">
     <div class="spinner"></div>
     <p>Események betöltése...</p>
   </div>
 
-  <!-- ==================== LÉTREHOZOTT ESEMÉNYEK TAB ==================== -->
   <div *ngIf="!loading && activeTab === 'created'" class="tab-content">
     <div *ngIf="createdEvents.length > 0" class="events-grid">
       <div
@@ -106,7 +102,6 @@
     </div>
   </div>
 
-  <!-- ==================== RÉSZVÉTELEK TAB ==================== -->
   <div *ngIf="!loading && activeTab === 'participating'" class="tab-content">
     <div *ngIf="participatingEvents.length > 0" class="events-grid">
       <div
@@ -176,10 +171,8 @@
     </div>
   </div>
 
-  <!-- ==================== JÓVÁHAGYÁSOK TAB ==================== -->
   <div *ngIf="!loading && activeTab === 'pending'" class="tab-content">
 
-    <!-- Pending loading state -->
     <div *ngIf="pendingLoading" class="loading-container">
       <div class="spinner"></div>
       <p>Kérések betöltése...</p>
@@ -187,13 +180,11 @@
 
     <div *ngIf="!pendingLoading && pendingRequests.length > 0" class="pending-list">
       <div *ngFor="let req of pendingRequests" class="pending-card">
-        <!-- Esemény fejléc -->
         <div class="pending-event-header" [routerLink]="['/events', req.event.id]">
           <span class="pending-event-title">{{ req.event.title }}</span>
           <span class="pending-event-date">📅 {{ getEventDate(req.event.start_date_time) }}</span>
         </div>
 
-        <!-- Résztvevő adatok -->
         <div class="pending-participant">
           <div class="pending-avatar">
             <img

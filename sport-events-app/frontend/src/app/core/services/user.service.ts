@@ -28,7 +28,6 @@ export class UserService {
    * Felhasználó profiljának frissítése
    */
   updateUserProfile(data: UserUpdate): Observable<User> {
-    // Ha van profilkép, FormData-t használunk
     if (data.profile_picture) {
       const formData = new FormData();
       Object.keys(data).forEach(key => {

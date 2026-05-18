@@ -35,6 +35,9 @@ export class MyEventsComponent implements OnInit {
     this.loadAll();
   }
 
+  /**
+   * Párhuzamosan lekéri a felhasználó által létrehozott eseményeket és a csatlakozásait.
+   */
   loadAll(): void {
     this.loading = true;
 
@@ -43,12 +46,9 @@ export class MyEventsComponent implements OnInit {
       participations: this.eventService.getMyParticipations()
     }).subscribe({
       next: ({ myEvents, participations }) => {
-        // Biztonságos tömb kinyerés
         const createdList = Array.isArray(myEvents) ? myEvents : (myEvents.results || []);
         const partList = Array.isArray(participations) ? participations : (participations.results || []);
 
-        // --- ÚJ SZŰRÉS A BACKEND STÁTUSZ ALAPJÁN ---
-        // Csak azokat engedjük át, amik 'upcoming' (közelgő) vagy 'ongoing' (folyamatban) státuszúak
         this.createdEvents = createdList.filter(e => e.status === 'upcoming' || e.status === 'ongoing');
         
         this.participatingEvents = partList.filter(e => e.status === 'upcoming' || e.status === 'ongoing');
@@ -63,7 +63,9 @@ export class MyEventsComponent implements OnInit {
     });
   }
 
-
+  /**
+   * Megvizsgálja, hogy a megadott esemény még aktív-e (nem járt-e le).
+   */
   private isEventActive(event: SportEvent): boolean {
     const now = new Date();
     
@@ -77,6 +79,9 @@ export class MyEventsComponent implements OnInit {
     return eventEnd >= now;
   }
 
+  /**
+   * Lekéri a saját eseményekhez tartozó, még jóváhagyásra váró jelentkezéseket.
+   */
   loadPendingRequests(): void {
     this.pendingRequests = [];
 
@@ -111,6 +116,9 @@ export class MyEventsComponent implements OnInit {
     });
   }
 
+  /**
+   * Vált a különböző nézetek (fülek) között és szükség esetén betölti az adatokat.
+   */
   switchTab(tab: 'created' | 'participating' | 'pending'): void {
     this.activeTab = tab;
     this.successMessage = '';
@@ -120,6 +128,9 @@ export class MyEventsComponent implements OnInit {
     }
   }
 
+  /**
+   * Jóváhagy egy adott jelentkezést a saját eseményre.
+   */
   approveParticipant(eventId: number, participantId: number): void {
     this.approvingId = participantId;
     
@@ -137,6 +148,9 @@ export class MyEventsComponent implements OnInit {
     });
   }
 
+  /**
+   * Elutasít egy adott jelentkezést a saját eseményre egy megerősítést követően.
+   */
   rejectParticipant(eventId: number, participantId: number): void {
     if (!confirm('Biztosan elutasítod ezt a kérést?')) return;
     
@@ -155,20 +169,32 @@ export class MyEventsComponent implements OnInit {
     });
   }
 
+  /**
+   * Eltávolít egy jóváhagyott vagy elutasított jelentkezést a várakozó listából.
+   */
   private removePendingRequest(participantId: number): void {
     this.pendingRequests = this.pendingRequests.filter(r => r.participant.id !== participantId);
   }
 
+  /**
+   * Formázott magyar dátumot készít (hónap, nap) az ISO dátumsztringből.
+   */
   getEventDate(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' });
   }
 
+  /**
+   * Formázott időpontot készít (óra, perc) az ISO dátumsztringből.
+   */
   getEventTime(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' });
   }
 
+  /**
+   * Visszaadja az esemény státuszának olvasható, magyar megfelelőjét.
+   */
   getStatusLabel(status: string): string {
     const labels: { [key: string]: string } = {
       'upcoming': 'Közelgő',
@@ -179,6 +205,9 @@ export class MyEventsComponent implements OnInit {
     return labels[status] || status;
   }
 
+  /**
+   * Visszaadja a nehézségi szint olvasható, magyar megfelelőjét.
+   */
   getDifficultyLabel(difficulty: string): string {
     const labels: { [key: string]: string } = {
       'easy': 'Kezdő',

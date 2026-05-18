@@ -55,6 +55,9 @@ export class EventCreateComponent implements OnInit {
     }
   }
 
+  /**
+   * Betölti az elérhető sportágakat a szerverről.
+   */
   loadSportTypes(): void {
     this.sportTypeService.getAllSportTypes().subscribe({
       next: (types) => {
@@ -71,6 +74,9 @@ export class EventCreateComponent implements OnInit {
     });
   }
 
+  /**
+   * Inicializálja a reaktív űrlapot és beállítja a mezők validációját.
+   */
   initForm(): void {
     const targetDate = new Date();
     targetDate.setHours(targetDate.getHours() + 1);
@@ -85,8 +91,8 @@ export class EventCreateComponent implements OnInit {
       duration_minutes: [60, [Validators.required, Validators.min(15)]],
       location_name: ['', [Validators.required, Validators.maxLength(200)]],
       location_address: [''],
-      latitude: [null],
-      longitude: [null],
+      latitude: [null, Validators.required],
+      longitude: [null, Validators.required],
       max_participants: [10, [Validators.required, Validators.min(2)]],
       min_participants: [2, [Validators.required, Validators.min(1)]],
       has_friends: [false], 
@@ -97,6 +103,13 @@ export class EventCreateComponent implements OnInit {
       is_free: [true],
       price: [null],
       notes: ['']
+    });
+
+    this.eventForm.get('location_name')?.valueChanges.subscribe(() => {
+      if (!this.showGeocodingResults && !this.searchingLocation && !this.loading) {
+         this.eventForm.patchValue({ latitude: null, longitude: null }, { emitEvent: false });
+         this.selectedLocation = null;
+      }
     });
 
     this.eventForm.get('has_friends')?.valueChanges.subscribe(hasFriends => {
@@ -123,11 +136,17 @@ export class EventCreateComponent implements OnInit {
     });
   }
 
+  /**
+   * Getter az űrlap vezérlőelemeinek egyszerűbb eléréséhez.
+   */
   get f() {
     return this.eventForm.controls;
   }
 
-getCurrentLocation(): void {
+  /**
+   * Lekéri a felhasználó jelenlegi földrajzi helyzetét.
+   */
+  getCurrentLocation(): void {
     if (navigator.geolocation) {
       this.useCurrentLocation = true;
       this.searchingLocation = true;
@@ -170,6 +189,9 @@ getCurrentLocation(): void {
     }
   }
 
+  /**
+   * Lehetővé teszi a koordináták manuális megadását.
+   */
   setManualLocation(): void {
     const lat = parseFloat(prompt('Add meg a szélességi fokot:', '47.4979') || '47.4979');
     const lng = parseFloat(prompt('Add meg a hosszúsági fokot:', '19.0402') || '19.0402');
@@ -183,6 +205,9 @@ getCurrentLocation(): void {
     }
   }
 
+  /**
+   * Cím alapján keresi meg a földrajzi koordinátákat.
+   */
   searchLocationByAddress(): void {
     const locationName = this.eventForm.get('location_name')?.value;
     
@@ -212,6 +237,9 @@ getCurrentLocation(): void {
     });
   }
 
+  /**
+   * Kiválaszt egy eredményt a címkeresési listából.
+   */
   selectGeocodingResult(result: GeocodingResult): void {
     this.selectedLocation = { lat: result.lat, lng: result.lng };
     
@@ -221,20 +249,24 @@ getCurrentLocation(): void {
       latitude: result.lat,
       longitude: result.lng,
       location_address: result.display_name,
-
       location_name: result.place_name ? result.place_name : currentTypedName
     });
     
     this.showGeocodingResults = false;
     this.geocodingResults = [];
     
-    this.toastService.showSuccess('Helyszín és pontos cím sikeresen beállítva!');
   }
 
+  /**
+   * Bezárja a geocoding keresési eredményeket mutató ablakot.
+   */
   closeGeocodingResults(): void {
     this.showGeocodingResults = false;
   }
 
+  /**
+   * Betölti egy meglévő esemény adatait szerkesztéshez.
+   */
   loadEventData(id: number): void {
     this.loading = true;
     this.eventService.getEventById(id).subscribe({
@@ -279,9 +311,18 @@ getCurrentLocation(): void {
     });
   }
 
+  /**
+   * Az űrlap beküldése, új esemény létrehozása vagy meglévő frissítése.
+   */
   onSubmit(): void {
     if (this.eventForm.invalid) {
-      this.toastService.showError('Kérlek töltsd ki az összes kötelező mezőt helyesen!');
+      
+      if (this.eventForm.get('latitude')?.hasError('required') || this.eventForm.get('longitude')?.hasError('required')) {
+        this.toastService.showError('Kérlek, használd a Keresés vagy a Jelenlegi helyzet gombot a pontos helyszín (koordináták) beállításához!');
+      } else {
+        this.toastService.showError('Kérlek töltsd ki az összes kötelező mezőt helyesen!');
+      }
+
       Object.keys(this.eventForm.controls).forEach(key => {
         const control = this.eventForm.get(key);
         control?.markAsTouched();
@@ -329,6 +370,9 @@ getCurrentLocation(): void {
     }
   }
 
+  /**
+   * Kezeli a szerverről érkező hibákat és megjeleníti azokat.
+   */
   private handleBackendError(error: any): void {
     if (error.error) {
       if (typeof error.error === 'string') {

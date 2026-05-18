@@ -8,9 +8,8 @@
     </p>
   </div>
 
-  <!-- Form -->
   <form [formGroup]="eventForm" (ngSubmit)="onSubmit()" class="event-form">
-    <!-- Basic Info Section -->
+    
     <div class="form-section">
       <h2 class="section-title">Alapadatok</h2>
 
@@ -75,7 +74,6 @@
       </div>
     </div>
 
-    <!-- Date & Time Section -->
     <div class="form-section">
       <h2 class="section-title">Időpont</h2>
 
@@ -111,51 +109,47 @@
       </div>
     </div>
 
-    <!-- Location Section -->
     <div class="form-section">
       <h2 class="section-title">Helyszín</h2>
-
-      <div class="location-actions">
-        <button type="button" class="btn btn-outline" (click)="getCurrentLocation()">
-          📍 Jelenlegi helyzet használata
-        </button>
-        <button type="button" class="btn btn-primary" (click)="searchLocationByAddress()" [disabled]="searchingLocation">
-          <span *ngIf="!searchingLocation">🔍 Keresés cím alapján</span>
-          <span *ngIf="searchingLocation">Keresés...</span>
-        </button>
-      </div>
-
+      
       <div class="form-group">
-        <label for="location_name">Helyszín neve *</label>
-        <input
-          type="text"
-          id="location_name"
-          formControlName="location_name"
-          class="form-control"
-          [class.is-invalid]="f['location_name'].invalid && f['location_name'].touched"
-          placeholder="pl: Városi sportpálya"
-        />
-        <div *ngIf="f['location_name'].invalid && f['location_name'].touched" class="invalid-feedback">
-          <span *ngIf="f['location_name'].errors?.['required']">A helyszín neve kötelező.</span>
+        <label for="location_name">Helyszín keresése *</label>
+        <div class="search-row">
+          <input
+            type="text"
+            id="location_name"
+            formControlName="location_name"
+            class="form-control"
+            [class.is-invalid]="f['location_name'].invalid && f['location_name'].touched"
+            placeholder="pl: Városliget, Szeged Dóm tér..."
+            (keyup.enter)="searchLocationByAddress(); $event.preventDefault()"
+          />
+          <button type="button" class="btn btn-primary" (click)="searchLocationByAddress()" [disabled]="searchingLocation">
+            <span *ngIf="!searchingLocation">🔍 Keresés</span>
+            <span *ngIf="searchingLocation">Keresés...</span>
+          </button>
+        </div>
+        <small>Add meg a helyszín nevét, majd kattints a Keresés gombra!</small>
+        
+        <div *ngIf="f['location_name'].invalid && f['location_name'].touched" class="invalid-feedback d-block">
+          <span *ngIf="f['location_name'].errors?.['required']">A helyszín nevének megadása kötelező.</span>
+        </div>
+        <div *ngIf="eventForm.get('latitude')?.hasError('required') && eventForm.get('location_name')?.touched" class="invalid-feedback d-block" style="font-weight: 600;">
+         A pontosításhoz használd a keresőt vagy a jelenlegi helyzet gombot!
         </div>
       </div>
 
-      <div class="form-group">
-        <label for="location_address">Pontos cím *</label>
-        <input
-          type="text"
-          id="location_address"
-          formControlName="location_address"
-          class="form-control"
-          placeholder="pl: Budapest, Példa utca 12. vagy Szeged, Dugonics tér"
-        />
-        <small>Add meg a címet és kattints a "Keresés cím alapján" gombra</small>
+      <div class="form-divider">
+        <span>vagy</span>
       </div>
 
-      <!-- Geocoding Results -->
-      <div *ngIf="showGeocodingResults && geocodingResults.length > 0" class="geocoding-results">
+      <button type="button" class="btn btn-outline w-100" (click)="getCurrentLocation()">
+        📍 Jelenlegi helyzetem használata
+      </button>
+
+      <div *ngIf="showGeocodingResults && geocodingResults.length > 0" class="geocoding-results mt-3">
         <div class="results-header">
-          <h4>Találatok ({{ geocodingResults.length }})</h4>
+          <h4>Válassz a találatok közül ({{ geocodingResults.length }})</h4>
           <button type="button" class="btn-close" (click)="closeGeocodingResults()">✕</button>
         </div>
         <div class="results-list">
@@ -170,11 +164,21 @@
         </div>
       </div>
 
+      <div class="form-group mt-4" *ngIf="f['latitude'].value">
+        <label for="location_address">Pontos cím</label>
+        <input
+          type="text"
+          id="location_address"
+          formControlName="location_address"
+          class="form-control readonly-input"
+          readonly
+        />
+      </div>
+
       <input type="hidden" formControlName="latitude" />
       <input type="hidden" formControlName="longitude" />
     </div>
 
-    <!-- Participants Section -->
     <div class="form-section">
       <h2 class="section-title">Résztvevők</h2>
 
@@ -211,7 +215,7 @@
           </label>
         </div>
 
-        <div class="form-group mt-3" *ngIf="f['has_friends'].value">
+        <div class="form-group mt-3 friend-count-box" *ngIf="f['has_friends'].value">
           <label for="friends_count">Hány barátoddal érkezel? *</label>
           <input
             type="number"
@@ -231,7 +235,6 @@
       </div>
     </div>
 
-    <!-- Settings Section -->
     <div class="form-section">
       <h2 class="section-title">Beállítások</h2>
 
@@ -256,7 +259,7 @@
         </label>
       </div>
 
-      <div class="form-group" *ngIf="!f['is_free'].value">
+      <div class="form-group mt-3" *ngIf="!f['is_free'].value">
         <label for="price">Részvételi díj (Ft) *</label>
         <input
           type="number"
@@ -272,7 +275,7 @@
         </div>
       </div>
 
-      <div class="form-group">
+      <div class="form-group mt-3">
         <label for="notes">Megjegyzések</label>
         <textarea
           id="notes"
@@ -284,11 +287,10 @@
       </div>
     </div>
 
-    <!-- Submit Buttons -->
     <div class="form-actions">
       <button type="submit" class="btn btn-primary btn-large" [disabled]="loading || eventForm.invalid">
         <span *ngIf="!loading">{{ isEditMode ? '💾 Változtatások mentése' : ' Esemény létrehozása' }}</span>
-        <span *ngIf="loading">Létrehozás...</span>
+        <span *ngIf="loading">Feldolgozás...</span>
       </button>
       <button type="button" class="btn btn-outline btn-large" routerLink="/events" [disabled]="loading">
         Mégse
